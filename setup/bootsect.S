@@ -31,11 +31,11 @@ _start2:
 
 _start3:
     /* Initialize segment registers */
+	cli
 	movw %ax, %ds
 	movw %ax, %ss
-	movw $0xfffe, %sp
-	movw %sp, %bp
-
+	movw $0xfffc, %sp
+    xorw %bp, %bp
     
     /* Clear the screen and set the position of the cursor */
 	movw $0x0600, %ax
@@ -65,7 +65,7 @@ _start3:
     
 
 	/* Load the setup code to SEG_SETUP */
-	pushw $28
+	pushw $20
 	pushw $SEG_BOOTSECT2
 	pushw $str_loading_start
 	call print_str
@@ -92,7 +92,7 @@ _start3:
 	cmpw $0, %ax
 	jne 1f
 
-	pushw $13
+	pushw $15
 	pushw $SEG_BOOTSECT2
 	pushw $str_loading_done
 	call print_str
@@ -104,10 +104,13 @@ _start3:
 	subw %di, %cx
 	shrw $2, %cx
 	rep; stosl
-
+    
+	/* %es was modified by previous  int call */
+	movw $SEG_BOOTSECT2, %ax
+	movw %ax, %es
 	call prepare_for_pm
 1:
-    pushw $20
+    pushw $22
 	pushw $SEG_BOOTSECT2
 	pushw $str_loading_failed
 	call print_str
@@ -250,11 +253,11 @@ print_nl:
 /* end print_nl */
 
 str_loading_start:
-    .ascii "Loading setup and kernel ..."  #28
+    .ascii "Loading kernel ...\r\n"  #20
 str_loading_done:
-    .ascii "Loading done!"        #13
+    .ascii "Loading done!\r\n"        #15
 str_loading_failed:
-    .ascii "Sad, loading failed."   #20
+    .ascii "Sad, loading failed.\r\n"   #22
 str_new_line:
     .ascii "\n"
 sectors_per_track:

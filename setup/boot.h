@@ -1,10 +1,12 @@
 #ifndef BOOT_BOOT_H
 #define BOOT_BOOT_H
 
-#include <asm-generic/types.h>
-#include <asm/boot.h>
+#include <types.h>
+#include <asm/e820.h>
 #include <asm/processor-flags.h>
-#include <xc/stddef.h>
+#include <stddef.h>
+#include <Xc/const.h>
+
 
 #define ARRAY_SIZE(x) (sizeof(x)/sizeof(*(x)))
 
@@ -56,6 +58,9 @@ void intcall(u8 int_no, const struct biosregs *ireg, struct biosregs *oreg);
 void __attribute__((noreturn)) go_to_protected_mode(void);
 
 void __attribute__((noreturn)) protected_mode_jump(u32 code32_start);
+
+/* copy.S */
+void *memset(void *dst, int c, size_t len);
 
 int enable_a20(void);
 

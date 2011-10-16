@@ -29,5 +29,5 @@ SECTIONS
 	. = ALIGN(16);
 	_end = .;
 	/DISCARD/ : {*(.eh_frame)}
-	. = ASSERT(_end <= 0x2400, "Setup too big!");
+	. = ASSERT(_end <= 0x2200, "Setup too big!");
 }

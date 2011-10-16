@@ -13,14 +13,17 @@ protected_mode_jump:
 	addl %ebx, 2f
 	jmp 1f
 1:               /* I wonder if this jump is necessary */
+    pushl $0
+	popfl
 
 	movl %cr0, %edx
 	orb $X86_CR0_PE, %dl
 	movl %edx, %cr0
 
-	.byte 0xea
+dbg_pm:    .byte 0xea
 2:	.long in_pm32
 	.word __BOOT_CS
+	
 /* end protected_mode_jump */
     
 	.code32
@@ -36,6 +39,19 @@ in_pm32:
 	movw %cx, %gs
 	movw %cx, %ss
 
+SIZE_KERNEL = 1024
+	/ * Copy kernel text to 1M */
+	movl $SIZE_KERNEL << 9, %ecx
+	movl $0x10000, %esi
+	movl $0x100000, %edi
+    movl %ecx, %edx
+	shrl $2, %ecx
+	cld
+	rep; movsl
+	movl %edx, %ecx
+	andl $3, %ecx
+	rep; movsb
+
 	/* ltr %di */
     
 	xorl %ecx, %ecx
@@ -43,6 +59,9 @@ in_pm32:
 	xorl %ebx, %ebx
 	xorl %ebp, %ebp
 	xorl %edi, %edi
+
+    /* esi points to boot_params */
+	movl $90000, %esi
 
 	/* lldt %cx */
 

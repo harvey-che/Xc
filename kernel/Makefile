@@ -1,15 +1,11 @@
-OBJ_S=head_32.o
-OBJ_C=init.o
+OBJ_S:=head_32.o
+OBJ_C:=init.o printk.o panic.o
 OBJ_FILES:=$(OBJ_S) $(OBJ_C)
 
-kerenl.bin:kernel.elf
-	objcopy -O binary kernel.elf kernel.bin -R .comment -S
-#	objcopy -O binary kernel.elf kernel.bin -j .text -j .rodata -j .data -j .bss
+kernel.o:$(OBJ_FILES)
+	ld -r -M -o kernel.o $(OBJ_FILES)>kernel.map
 
-kernel.elf:$(OBJ_FILES)
-	ld -Tkernel.ld -M -o kernel.elf $(OBJ_FILES)>kernel.map
-
-CFLAGS=-g -mregparm=3 -nostdinc -nostdlib -ffreestanding -fno-toplevel-reorder -fno-strict-aliasing -fno-stack-protector -Iinclude -I../include -D__KERNEL__
+CFLAGS=-g -mregparm=3 -nostdinc -ffreestanding -fno-toplevel-reorder -fno-strict-aliasing -fno-stack-protector -I../include -D__KERNEL__
 
 AFLAGS=$(CFLAGS) -D__ASSEMBLY__
 
@@ -20,4 +16,4 @@ $(OBJ_C):%.o:%.c
 	gcc $(CFLAGS) -o $@ -c $<
 
 clean:
-	-rm -v $(OBJ_FILES) kernel.elf kernel.bin kernel.map
+	-rm -v $(OBJ_FILES) kernel.o kernel.map
