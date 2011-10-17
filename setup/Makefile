@@ -3,7 +3,7 @@ OBJ_C=main.o memory.o pm.o regs.o tty.o a20.o
 OBJ_FILES:=$(OBJ_S) $(OBJ_C)
 
 setup.bin:setup.elf
-	objcopy -O binary setup.elf setup.bin -S -R .comment
+	objcopy -O binary setup.elf setup.bin -S -R .comment -R .eh_frame
 
 setup.elf:$(OBJ_FILES)
 	ld -Tsetup.ld -nostdlib -o setup.elf $(OBJ_FILES)>setup.map

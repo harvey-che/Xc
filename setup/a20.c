@@ -119,20 +119,20 @@ int enable_a20(void)
 
        while (loops--) {
 	       /* First, check to see if A20 is already enabled
-		  (legacy free, etc.) */
+		  (legacy free, etc.)
 	       if (a20_test_short())
 		       return 0;
 	       
-	       /* Next, try the BIOS (INT 0x15, AX=0x2401) */
+	       /* Next, try the BIOS (INT 0x15, AX=0x2401) 
 	       enable_a20_bios();
 	       if (a20_test_short())
 		       return 0;
 	       
-	       /* Try enabling A20 through the keyboard controller */
+	       /* Try enabling A20 through the keyboard controller
 	       kbc_err = empty_8042();
 
 	       if (a20_test_short())
-		       return 0; /* BIOS worked, but with delayed reaction */
+		       return 0; /* BIOS worked, but with delayed reaction
 	
 	       if (!kbc_err) {
 		       enable_a20_kbc();
@@ -141,8 +141,9 @@ int enable_a20(void)
 	       }
 	       
 	       /* Finally, try enabling the "fast A20 gate" */
+		  
 	       enable_a20_fast();
-	       if (a20_test_long())
+	       if (a20_test_short())
 		       return 0;
        }
        

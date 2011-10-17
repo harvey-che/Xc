@@ -3,9 +3,9 @@
 	.globl intcall
 /* %ax = int_no, %dx = ireq, %cx = oreq */
 intcall:
-    cmpb %al, 3f
+    cmpb %al, intno
 	je 1f
-	movb %al, 3f      /* indeed, it's ugly */
+	movb %al, intno      /* indeed, it's ugly */
 	jmp 1f           /* Synchronize pipeline, I wonder if this jump is necessoy */
 1:
     pushfl
@@ -27,7 +27,7 @@ intcall:
 	popfl
 
 	.byte 0xcd
-3:	.byte 0
+intno:	.byte 0
 
     pushfl
 	pushw %ds

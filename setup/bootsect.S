@@ -244,22 +244,12 @@ print_str:
     ret $6
 /* end print_str */
 
-print_nl:
-    pushw $1
-	pushw $SEG_BOOTSECT2
-	pushw $str_new_line
-	call print_str
-	ret
-/* end print_nl */
-
 str_loading_start:
     .ascii "Loading kernel ...\r\n"  #20
 str_loading_done:
     .ascii "Loading done!\r\n"        #15
 str_loading_failed:
     .ascii "Sad, loading failed.\r\n"   #22
-str_new_line:
-    .ascii "\n"
 sectors_per_track:
     .word 0
 max_cylinders:

@@ -4,13 +4,12 @@
 
 int detect_memory_e820(void)
 {
-    int count = 0, i = 0, j = 0;
+    int count = 0, i = 0;
 	u32 total_physical_memsize = 0;
 	struct biosregs ireg, oreg;
 	struct e820entry *desc = e820_map;
     static struct e820entry buf;
 
-    j++;
 	initregs(&ireg);
 	ireg.ax = 0xe820;
     ireg.cx = sizeof buf;
@@ -28,6 +27,9 @@ int detect_memory_e820(void)
             count = 0;
 			break;
 		}
+
+		if (oreg.ebx == 0)
+			break;
 
 		*desc++ = buf;
 		count++;
