@@ -2,7 +2,12 @@
 #include <asm/segment.h>
 #include <asm/processor-flags.h>
 
+
 #define pa(x) ((x) - PAGE_OFFSET)
+
+LOWMEM_PAGES = (((1 << 32) - PAGE_OFFSET) >> PAGE_SHIFT)
+
+MAPPING_BEYOND_END = ((LOWMEM_PAGES / PTRS_PER_PGD) << PAGE_SHIFT)
 
 .code32
 .section ".text", "ax"
@@ -50,6 +55,11 @@ page_pde_offset = (PAGE_OFFSET >> 20)
 2:  stosl
     addl $0x1000, %eax
 	loop 2b
+	
+    movl $pa(_end) + MAPPING_BEYOND_END + PTE_IDENT_ATTR, %ebp
+	cmpl %ebp, %eax
+	jb 1b
+
 	addl $PAGE_OFFSET, %edi
 	movl %edi, pa(_brk_end)
 	shrl $12, %eax
@@ -80,7 +90,7 @@ boot_gdt_descr:
 	.long boot_gdt - PAGE_OFFSET
 
 stack_start:
-    .long 0
+    .long init_thread_union + THREAD_SIZE
 boot_gdt:
     .fill GDT_ENTRY_BOOT_CS, 8, 0
 	.quad 0x00cf9a000000ffff

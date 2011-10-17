@@ -20,7 +20,7 @@ protected_mode_jump:
 	orb $X86_CR0_PE, %dl
 	movl %edx, %cr0
 
-dbg_pm:    .byte 0xea
+dbg_pm:    .byte 0x66, 0xea
 2:	.long in_pm32
 	.word __BOOT_CS
 	
@@ -60,8 +60,9 @@ SIZE_KERNEL = 1024
 	xorl %ebp, %ebp
 	xorl %edi, %edi
 
+SEG_BOOTSECT2 = 0x9000
     /* esi points to boot_params */
-	movl $90000, %esi
+	movl $SEG_BOOTSECT2 << 4, %esi
 
 	/* lldt %cx */
 

@@ -25,10 +25,11 @@ SECTIONS
 		_edata = .;
 	}
 
-	. = ALIGN(16);
+	. = ALIGN(4096);
     .bss : {
         __bss_start = .;
 		*(.bss)
+		. = ALIGN(4096);
 	    __bss_stop = .;
 	}
 

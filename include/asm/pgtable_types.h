@@ -17,6 +17,8 @@
 
 #define PAGE_SIZE 4096
 
+#define THREAD_SIZE (PAGE_SIZE << 2)
+
 #define PAGE_OFFSET 0xc0000000
 
 #define _PAGE_PRESENT   0x00000001
