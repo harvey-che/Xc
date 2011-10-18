@@ -10,9 +10,6 @@ setup.elf:$(OBJ_FILES)
 
 CFLAGS=-g -Wall -mregparm=3 -march=i386 -m32 -mpreferred-stack-boundary=2 -fomit-frame-pointer -ffreestanding -fno-toplevel-reorder -fno-strict-aliasing -fno-stack-protector -nostdinc -include code16gcc.h -I../include -D__KERNEL__
 
-#CFLAGS=-g -Wall -mregparm=3 -ffreestanding -fno-strict-aliasing -nostdinc -include code16gcc.h -I../include -D__KERNEL__
-
-#CFLAGS=-g -Wall -mregparm=3 -march=i386 -m32 -fno-strict-aliasing -fno-builtin -nostdinc -include code16gcc.h -I../include -D__KERNEL__
 
 AFLAGS=$(CFLAGS) -D__ASSEMBLY__
 

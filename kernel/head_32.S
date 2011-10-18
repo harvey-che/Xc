@@ -72,6 +72,8 @@ page_pde_offset = (PAGE_OFFSET >> 20)
 	movl %eax, %cr0
 	ljmp $__BOOT_CS, $1f
 1:
+    addl $PAGE_OFFSET, %esp
+
     pushl $0
 	popf
 
@@ -79,18 +81,25 @@ page_pde_offset = (PAGE_OFFSET >> 20)
 
 	xorl %eax, %eax
 	lldt %ax
-
+    
+	pushl $0
+	movl %esp, %ebp
     jmp start_kernel;
 
 setup_idt:
     ret
 
+    .section ".data"
+    .align 4
+	.word 0
 boot_gdt_descr:
     .word __BOOT_DS + 7
 	.long boot_gdt - PAGE_OFFSET
 
 stack_start:
     .long init_thread_union + THREAD_SIZE
+    
+	.align 8
 boot_gdt:
     .fill GDT_ENTRY_BOOT_CS, 8, 0
 	.quad 0x00cf9a000000ffff

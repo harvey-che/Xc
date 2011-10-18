@@ -33,7 +33,6 @@ SECTIONS
 	    __bss_stop = .;
 	}
 
-	
     . = ALIGN(4096);
 	.brk : {
         __brk_base = .;
@@ -41,8 +40,10 @@ SECTIONS
 		__brk_limit = .;
 	}
 
-	. = ALIGN(16);
 	_end = .;
-	/DISCARD/ : {*(.eh_frame)}
+
+	.eh_frame : {*(.eh_frame)}
+
+	/* /DISCARD/ : {*(.eh_frame)} */
 	. = ASSERT( . <= 0xc0180000, "Kernel too big!");
 }

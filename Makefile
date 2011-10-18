@@ -6,7 +6,7 @@ setup/setup.bin:
 	cd setup; make clean; make;
 
 kernel.bin:kernel.elf
-	objcopy -O binary kernel.elf kernel.bin -S -R .comment 
+	objcopy -O binary kernel.elf kernel.bin -S -R .comment -R .eh_frame 
 
 kernel.elf:$(SUB_OBJS)
 	ld -Tkernel.ld -nostdlib -M -o kernel.elf $(SUB_OBJS) > kernel.map

@@ -26,11 +26,10 @@ SECTIONS
 	    __bss_end = .;
 	}
     
-    . = ALIGN(16);
+	_end = .;
+
 	.eh_frame : {*(.eh_frame)}
 
-	. = ALIGN(16);
-	_end = .;
 	/* /DISCARD/ : {*(.eh_frame)} */
 	. = ASSERT(_end <= 0x2200, "Setup too big!");
 }

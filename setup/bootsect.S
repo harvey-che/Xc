@@ -83,7 +83,7 @@ _start3:
     /* Load the Xc kernel to SEG_KERNEL */
 	pushw $0x1000
 	pushw $0x0000
-	pushw $18
+	pushw $SIZE_KERNEL
 	pushw $0
 	pushw $1
 	pushw $1  /* the CHS of the kernel head is related to the setup size */
@@ -97,7 +97,9 @@ _start3:
 	pushw $str_loading_done
 	call print_str
 
-    /* Zero the bss */
+    /* Zero the bss, %es was modified by previous int call */
+	movw $SEG_BOOTSECT2, %ax
+	movw %ax, %es
 	movw $__bss_start, %di
 	movw $_end+3, %cx
 	xorl %eax, %eax
@@ -105,9 +107,6 @@ _start3:
 	shrw $2, %cx
 	rep; stosl
     
-	/* %es was modified by previous  int call */
-	movw $SEG_BOOTSECT2, %ax
-	movw %ax, %es
 	call prepare_for_pm
 1:
     pushw $22
@@ -184,7 +183,7 @@ loading_continue:
 
 
     xorb %ah, %ah               /* %ax is the sectors this iteration have loaded */
-	subb %al, 12(%bp)           /* the rest sectors to be loaded is updated */
+	subw %ax, 12(%bp)           /* the rest sectors to be loaded is updated */
 	shlw $9, %ax
 	addw %ax, %bx
 	movw %es, %ax

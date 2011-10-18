@@ -2,32 +2,40 @@
 #include <stddef.h>
 #include <Xc/kernel.h>
 #include <string.h>
+#include <asm/processor.h>
 
 #include <Xc/mm.h>
 
-u32 e820_table_start = 0;
-u32 e820_table_end = 0;
-u32 e820_table_top = 0;
+extern u8 _end[0];
+
+u32 pgt_buf_start = 0;
+u32 pgt_buf_end = 0;
+u32 pgt_buf_top = 0;
 static void* alloc_low_page()
 {
 	u32 pfn;
 	void * addr;
-    if (e820_table_end >= e820_table_top)
+    if (pgt_buf_end >= pgt_buf_top)
 	{
         panic("alloc_low_page: run out of memory");
 	}
     
-	pfn = e820_table_end++;
+	pfn = pgt_buf_end++;
     addr = __va(pfn << PAGE_SHIFT);
 	memset(addr, 0, PAGE_SIZE);
     return addr;
 }
 
+
 void early_mem_init()
 {
-     e820_table_start = 0x100000 >> PAGE_SHIFT;
-	 e820_table_end = e820_table_start;
-	 e820_table_top = (boot_params[0] < 0x900000? boot_params[0]: 0x900000) >> PAGE_SHIFT;
+	u32 ptes, tables_size;
+	pgt_buf_start = (((u32)_end - PAGE_OFFSET) + PAGE_SIZE - 1) >> PAGE_SHIFT;
+	pgt_buf_end = pgt_buf_start;
+
+	ptes = ((boot_params[0] + PAGE_SIZE - 1) >> PAGE_SHIFT);
+	tables_size = roundup(ptes * sizeof (pte_t), PAGE_SIZE);
+    pgt_buf_top = pgt_buf_start + (tables_size >> PAGE_SHIFT);
 }
 
 static pmd_t* one_md_table_init(pgd_t *pgd)
@@ -57,7 +65,6 @@ void setup_paging(void)
 	int pgd_idx, pmd_idx, pte_idx;
 	u32 pfn = 0, end_pfn = 0;
 	pgd_t *pgd;
-	pud_t *pud;
 	pmd_t *pmd;
 	pte_t *pte;
 
@@ -77,6 +84,10 @@ void setup_paging(void)
 			}
 		}
 	}
+
+	load_cr3(swapper_pg_dir);
+
+	__flush_tlb_all();
 }
 
 
