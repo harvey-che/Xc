@@ -3,9 +3,9 @@
 #include <asm/processor-flags.h>
 
 
-#define pa(x) ((x) - PAGE_OFFSET)
+#define pa(x) ((x) - __PAGE_OFFSET)
 
-LOWMEM_PAGES = (((1 << 32) - PAGE_OFFSET) >> PAGE_SHIFT)
+LOWMEM_PAGES = (((1 << 32) - __PAGE_OFFSET) >> PAGE_SHIFT)
 
 MAPPING_BEYOND_END = ((LOWMEM_PAGES / PTRS_PER_PGD) << PAGE_SHIFT)
 
@@ -23,7 +23,7 @@ startup_32:
 
     /* Setup stack */
 	movl pa(stack_start), %ecx
-	leal -PAGE_OFFSET(%ecx), %esp
+	leal -__PAGE_OFFSET(%ecx), %esp
 
     /* Clear bss */
     cld
@@ -41,7 +41,7 @@ startup_32:
 	rep; movsl
 
     /* Construct provisional page tables */
-page_pde_offset = (PAGE_OFFSET >> 20)
+page_pde_offset = (__PAGE_OFFSET >> 20)
 
     movl $pa(__brk_base), %edi
 	movl $pa(initial_page_table), %edx
@@ -60,7 +60,7 @@ page_pde_offset = (PAGE_OFFSET >> 20)
 	cmpl %ebp, %eax
 	jb 1b
 
-	addl $PAGE_OFFSET, %edi
+	addl $__PAGE_OFFSET, %edi
 	movl %edi, pa(_brk_end)
 	shrl $12, %eax
 	movl %eax, pa(max_pfn_mapped)
@@ -72,7 +72,7 @@ page_pde_offset = (PAGE_OFFSET >> 20)
 	movl %eax, %cr0
 	ljmp $__BOOT_CS, $1f
 1:
-    addl $PAGE_OFFSET, %esp
+    addl $__PAGE_OFFSET, %esp
 
     pushl $0
 	popf
@@ -94,7 +94,7 @@ setup_idt:
 	.word 0
 boot_gdt_descr:
     .word __BOOT_DS + 7
-	.long boot_gdt - PAGE_OFFSET
+	.long boot_gdt - __PAGE_OFFSET
 
 stack_start:
     .long init_thread_union + THREAD_SIZE

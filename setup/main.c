@@ -1,6 +1,8 @@
 #include "boot.h"
+#include <asm/bootparam.h>
 
-struct e820entry e820_map[E820MAX];
+
+struct boot_params boot_params;
 
 u32 code32_start = 0x100000;
 

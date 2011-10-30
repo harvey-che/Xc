@@ -3,7 +3,9 @@
 
 
 #define X86_EFLAGS_CF 0x00000001
+#define X86_EFLAGS_IF 0x00000200
 
 #define X86_CR0_PE    0x00000001
 #define X86_CR0_PG    0x80000000
+
 #endif

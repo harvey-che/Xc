@@ -1,16 +1,21 @@
 #include <asm/pagetable.h>
 #include <stddef.h>
 #include <Xc/kernel.h>
-#include <string.h>
+#include <Xc/string.h>
 #include <asm/processor.h>
-
+#include <Xc/bootmem.h>
 #include <Xc/mm.h>
+#include <asm/dma.h>
+#include <Xc/mmzone.h>
 
 extern u8 _end[0];
 
 u32 pgt_buf_start = 0;
 u32 pgt_buf_end = 0;
 u32 pgt_buf_top = 0;
+
+int after_bootmem = 0;
+
 static void* alloc_low_page()
 {
 	u32 pfn;
@@ -29,12 +34,12 @@ static void* alloc_low_page()
 
 void early_mem_init()
 {
-	u32 ptes, tables_size;
+	u32 tables_size;
 	pgt_buf_start = (((u32)_end - PAGE_OFFSET) + PAGE_SIZE - 1) >> PAGE_SHIFT;
 	pgt_buf_end = pgt_buf_start;
 
-	ptes = ((boot_params[0] + PAGE_SIZE - 1) >> PAGE_SHIFT);
-	tables_size = roundup(ptes * sizeof (pte_t), PAGE_SIZE);
+	//ptes = ((boot_params[0] + PAGE_SIZE - 1) >> PAGE_SHIFT);
+	tables_size = roundup(max_pfn * sizeof (pte_t), PAGE_SIZE);
     pgt_buf_top = pgt_buf_start + (tables_size >> PAGE_SHIFT);
 }
 
@@ -53,7 +58,11 @@ static pte_t* one_page_table_init(pmd_t *pmd)
 {
     if (!(pmd->pmd & _PAGE_PRESENT)) {
         pte_t *page_table = NULL;
-
+        if (after_bootmem) {
+            page_table = (pte_t*)alloc_bootmem_pages(PAGE_SIZE);
+		}
+		else
+			page_table = (pte_t*)alloc_low_page();
 		page_table = (pte_t*)alloc_low_page();
 		set_pmd(pmd, __pmd(__pa(page_table) | _PAGE_TABLE));
 	}
@@ -68,7 +77,7 @@ void setup_paging(void)
 	pmd_t *pmd;
 	pte_t *pte;
 
-	end_pfn = boot_params[0] >> PAGE_SHIFT;
+	end_pfn = max_pfn;
     pgd_idx = pgd_index((pfn << PAGE_SHIFT) + PAGE_OFFSET);
     pgd = swapper_pg_dir + pgd_idx;
 	for (; pgd_idx < PTRS_PER_PGD; pgd++, pgd_idx++) {
@@ -90,4 +99,23 @@ void setup_paging(void)
 	__flush_tlb_all();
 }
 
+void setup_bootmem_allocator(void)
+{
+    after_bootmem = 1;
+}
 
+void initmem_init(void)
+{
+    memblock_x86_register_active_regions(0, 0, max_low_pfn);
+	setup_bootmem_allocator();
+}
+
+void zone_sizes_init(void)
+{
+    unsigned long max_zone_pfns[MAX_NR_ZONES];
+
+	memset(max_zone_pfns, 0, sizeof(max_zone_pfns));
+    max_zone_pfns[ZONE_DMA] = virt_to_phys((char*)MAX_DMA_ADDRESS) >> PAGE_SHIFT;
+	max_zone_pfns[ZONE_NORMAL] = max_low_pfn;
+	free_area_init_nodes(max_zone_pfns);
+}

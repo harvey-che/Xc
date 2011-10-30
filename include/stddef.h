@@ -15,6 +15,9 @@ enum {
 	true = 1
 };
 
+#undef offsetof
+#define offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)
+
 //#endif
 
 #endif

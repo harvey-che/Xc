@@ -1,14 +1,16 @@
 #ifndef BOOT_BOOT_H
 #define BOOT_BOOT_H
 
-#include <types.h>
+#include <Xc/types.h>
 #include <asm/e820.h>
 #include <asm/processor-flags.h>
 #include <stddef.h>
 #include <Xc/const.h>
-
+#include <asm/bootparam.h>
 
 #define ARRAY_SIZE(x) (sizeof(x)/sizeof(*(x)))
+
+extern struct boot_params boot_params;
 
 #define cpu_relax() asm volatile("rep; nop")
 

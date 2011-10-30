@@ -31,4 +31,15 @@ static inline void load_cr3(pgd_t *pgdir)
 {
     write_cr3(__pa(pgdir));
 }
+
+static inline void rep_nop(void)
+{
+    asm volatile("rep; nop" ::: "memory");
+}
+
+static inline void cpu_relax(void)
+{
+    rep_nop();
+}
+
 #endif

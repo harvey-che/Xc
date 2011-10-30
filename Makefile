@@ -1,4 +1,4 @@
-SUB_OBJS=kernel/kernel.o mm/mm.o
+SUB_OBJS=kernel/kernel.o mm/mm.o lib/lib.o
 
 ALL:setup/setup.bin kernel.bin
 

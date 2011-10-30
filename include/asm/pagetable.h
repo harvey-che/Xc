@@ -1,8 +1,9 @@
 #ifndef _ASM_X86_PGTABLE_32_H
 #define _ASM_X86_PGTABLE_32_H
 
+#include <asm/page.h>
 #include <asm/pgtable_types.h>
-#include <types.h>
+#include <Xc/types.h>
 
 #ifndef __ASSEMBLY__
 
@@ -35,8 +36,6 @@ typedef struct {
 
 extern pgd_t swapper_pg_dir[1024];
 
-#define __va(x) ((void*)((u32)(x) + PAGE_OFFSET))
-#define __pa(x) ((u32)(x) - PAGE_OFFSET)
 
 #define pgd_index(address) (((u32)(address) >> PGDIR_SHIFT) & (PTRS_PER_PGD - 1))
 

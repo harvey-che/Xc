@@ -1,6 +1,15 @@
 #ifndef _ASM_X86_PGTABLE_DEFS_H
 #define _ASM_X86_PGTABLE_DEFS_H
 
+#include <asm/page_types.h>
+
+/*
+ *  asm/pgtable_types.h -> asm/pgtable_32_types.h -> asm/pgtable-2level_types.h
+ *                      -> asm-generic/pgtable-nopmd.h
+ *                      -> asm/page_types.h
+ *
+ */
+
 #define PGDIR_SHIFT 22
 #define PTRS_PER_PGD 1024
 
@@ -15,11 +24,8 @@
 
 #define PTE_PFN_MASK 0xfffff000
 
-#define PAGE_SIZE 4096
-
-#define THREAD_SIZE (PAGE_SIZE << 2)
-
-#define PAGE_OFFSET 0xc0000000
+#define HPAGE_SHIFT PMD_SHIFT
+#define HUGETLB_PAGE_ORDER (HPAGE_SHIFT - PAGE_SHIFT)
 
 #define _PAGE_PRESENT   0x00000001
 #define _PAGE_RW        0x00000002

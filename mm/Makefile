@@ -1,5 +1,5 @@
 OBJ_S:=
-OBJ_C:=init_32.o
+OBJ_C:=init_32.o nobootmem.o memblock.o page_alloc.o mmzone.o memory.o slub.o vmalloc.o swap.o
 OBJ_FILES:=$(OBJ_S) $(OBJ_C)
 
 

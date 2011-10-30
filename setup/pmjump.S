@@ -60,9 +60,8 @@ SIZE_KERNEL = 1024
 	xorl %ebp, %ebp
 	xorl %edi, %edi
 
-SEG_BOOTSECT2 = 0x9000
     /* esi points to boot_params */
-	movl $SEG_BOOTSECT2 << 4, %esi
+	movl $boot_params, %esi
 
 	/* lldt %cx */
 
