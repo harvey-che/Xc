@@ -29,6 +29,7 @@
 
 
 void kmem_cache_init(void);
+void kmem_cache_init_late(void);
 
 static void *kmalloc_node(size_t size, gfp_t flags, int node)
 {

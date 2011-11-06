@@ -10,6 +10,7 @@
 #include <Xc/atomic.h>
 #include <Xc/page-flags.h>
 #include <Xc/pfn.h>
+#include <Xc/range.h>
 
 /* pageblock_flags.h */
 
@@ -21,11 +22,17 @@
 void early_mem_init();
 void setup_paging(void);
 void free_area_init_nodes(unsigned long *max_zone_pfn);
+void zone_sizes_init(void);
 
 void get_pfn_range_for_nid(unsigned int nid, unsigned long *start_pfn, unsigned long *end_pfn);
 
 u64 find_memory_core_early(int nid, u64 size, u64 align, u64 goal, u64 limit);
 extern void add_active_range(unsigned int nid, unsigned long start_pfn, unsigned long end_pfn);
+extern void mem_init(void);
+
+int add_from_early_node_map(struct range *range, int az, int nr_range, int nid);
+typedef int (*work_fn_t)(unsigned long, unsigned long, void *);
+extern void work_with_active_regions(int nid, work_fn_t work_fn, void *data);
 
 extern unsigned long highest_memmap_pfn;
 extern int after_bootmem;

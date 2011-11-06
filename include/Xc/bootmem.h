@@ -7,9 +7,9 @@
 
 #define BOOTMEM_LOW_LIMIT 0
 
-extern u32 max_pfn;
-extern u32 max_low_pfn;
-extern u32 min_low_pfn;
+extern unsigned long max_pfn;
+extern unsigned long max_low_pfn;
+extern unsigned long min_low_pfn;
 
 extern struct memblock memblock;
 
@@ -23,6 +23,9 @@ extern void *__alloc_bootmem(unsigned long size, unsigned long align, unsigned l
 
 extern void *__alloc_bootmem_node_nopanic(pg_data_t *pgdat, unsigned long size, unsigned long align,
 		unsigned long goal);
+
+unsigned long free_all_memory_core_early(int nodeid);
+extern unsigned long free_all_bootmem(void);
 
 static inline void *alloc_remap(int nid, unsigned long size)
 {

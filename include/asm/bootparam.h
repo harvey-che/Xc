@@ -5,8 +5,9 @@
 
 struct boot_params {
 	__u8 e820_entries;
-    struct e820entry e820_map[E820MAX];
-	__u8 pad[4096-sizeof(__u8) - (E820MAX * sizeof(struct e820entry))];
+	__u8 pad0[3];
+    struct e820entry e820_map[E820MAX]; /* 128 * 20 */
+	__u8 pad1[4096- 2564];
 } __attribute__((packed));
 
 

@@ -18,5 +18,9 @@ static inline void set_page_refcounted(struct page *page)
     set_page_count(page, 1);
 }
 
+static inline void mminit_verify_zonelist(void) {}
+
+extern void __free_pages_bootmem(struct page *page, unsigned int order);
+
 #endif
 

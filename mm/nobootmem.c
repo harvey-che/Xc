@@ -3,10 +3,11 @@
 #include <Xc/memblock.h>
 #include <Xc/slab.h>
 #include <Xc/string.h>
+#include "internal.h"
 
-u32 max_pfn;
-u32 max_low_pfn;
-u32 min_low_pfn;
+unsigned long max_pfn;
+unsigned long max_low_pfn;
+unsigned long min_low_pfn;
 
 struct pglist_data contig_page_data;
 
@@ -89,4 +90,51 @@ void * __alloc_bootmem_node_nopanic(pg_data_t *pgdat, unsigned long size, unsign
 		return ptr;
 
 	return __alloc_bootmem_nopanic(size, align, goal);
+}
+
+static void __free_pages_memory(unsigned long start, unsigned long end)
+{
+    int i;
+	unsigned long start_aligned, end_aligned;
+	int order = ilog2(BITS_PER_LONG);
+
+	start_aligned = (start + (BITS_PER_LONG - 1)) & ~(BITS_PER_LONG - 1);
+	end_aligned = end & ~(BITS_PER_LONG - 1);
+
+	if (end_aligned <= start_aligned) {
+        for (i = start; i < end; i++)
+			__free_pages_bootmem(pfn_to_page(i), 0);
+		return;
+	}
+
+	for (i = start; i < start_aligned; i++)
+		__free_pages_bootmem(pfn_to_page(i), 0);
+	for (i = start_aligned; i < end_aligned; i += BITS_PER_LONG)
+		__free_pages_bootmem(pfn_to_page(i), order);
+	for (i = end_aligned; i < end; i++)
+		__free_pages_bootmem(pfn_to_page(i), 0);
+}
+
+unsigned long free_all_memory_core_early(int nodeid)
+{
+    int i;
+	u64 start, end;
+	unsigned long count = 0;
+	struct range *range = NULL;
+	int nr_range;
+
+	nr_range = get_free_all_memory_range(&range, nodeid);
+	for (i = 0;i < nr_range; i++) {
+        start = range[i].start;
+		end = range[i].end;
+		count += end - start;
+		__free_pages_memory(start, end);
+	}
+
+	return count;
+}
+
+unsigned long free_all_bootmem(void)
+{
+    return free_all_memory_core_early(MAX_NUMNODES);
 }

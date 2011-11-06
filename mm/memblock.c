@@ -4,6 +4,9 @@
 #include <asm/e820.h>
 #include <Xc/linkage.h>
 #include <Xc/kernel.h>
+#include <Xc/range.h>
+#include <Xc/init.h>
+#include <Xc/bootmem.h>
 
 struct memblock memblock;
 
@@ -54,6 +57,26 @@ static void memblock_remove_region(struct memblock_type *type, unsigned long r)
         type->cnt = 1;
 		type->regions[0].base = type->regions[0].size = 0;
 	}
+}
+
+int __init_memblock memblock_free_reserved_regions(void)
+{
+    if (memblock.reserved.regions == memblock_reserved_init_regions)
+		return 0;
+
+	/* return memblock_free(__pa(memblock.reserved.regions), 
+			             sizeof(struct memblock_region) * memblock.reserved.max); */
+	return 0; 
+}
+
+int __init_memblock memblock_reserve_reserved_regions(void)
+{
+    if (memblock.reserved.regions == memblock_reserved_init_regions)
+		return 0;
+
+	/* return memblock_reserve(__pa(memblock.reserved.regions), 
+			                sizeof(struct memblock_region) * memblock.reserved.max); */
+	return 0; 
 }
 
 extern int __weak memblock_memory_can_coalesce(phys_addr_t addr1, phys_addr_t size1, phys_addr_t addr2, phys_addr_t size2)
@@ -290,4 +313,91 @@ void memblock_x86_register_active_regions(int nid, unsigned long start_pfn, unsi
 	for_each_memblock(memory, r)
 		if (memblock_x86_find_active_region(r, start_pfn, last_pfn, &ei_startpfn, &ei_endpfn))
 			add_active_range(nid, ei_startpfn, ei_endpfn);
+}
+
+static __init struct range *find_range_array(int count)
+{
+    u64 end, size, mem;
+	struct range *range;
+
+	size = sizeof(struct range) * count;
+	end = memblock.current_limit;
+
+	mem = memblock_find_in_range(0, end, size, sizeof(struct range));
+
+	if (mem == MEMBLOCK_ERROR)
+		panic("can not find more space for range array");
+
+	range = __va(mem);
+	memset(range, 0, size);
+	return range;
+}
+
+static void __init memblock_x86_subtract_reserved(struct range *range, int az)
+{
+    u64 final_start, final_end;
+	struct memblock_region *r;
+
+	memblock_free_reserved_regions();
+
+	for_each_memblock(reserved, r) {
+        final_start = PFN_DOWN(r->base);
+		final_end = PFN_UP(r->base + r->size);
+		if (final_start >= final_end)
+			continue;
+		subtract_range(range, az, final_start, final_end);
+	}
+
+	memblock_reserve_reserved_regions();
+}
+
+struct count_data {
+    int nr;
+};
+
+static int __init count_work_fn(unsigned long start_pfn, unsigned long end_pfn, void *datax)
+{
+    struct count_data *data = datax;
+	data->nr++;
+	return 0;
+}
+
+static int __init count_early_node_map(int nodeid)
+{
+    struct count_data data;
+
+	data.nr = 0;
+	work_with_active_regions(nodeid, count_work_fn, &data);
+    return data.nr;
+}
+
+int __get_free_all_memory_range(struct range **rangep, int nodeid, unsigned long start_pfn,
+		                        unsigned long end_pfn)
+{
+    int count;
+	struct range *range;
+	int nr_range;
+
+	count = (memblock.reserved.cnt + count_early_node_map(nodeid)) * 2;
+	range = find_range_array(count);
+	nr_range = 0;
+
+	nr_range = add_from_early_node_map(range, count, nr_range, nodeid);
+	subtract_range(range, count, 0, start_pfn);
+	subtract_range(range, count, end_pfn, -1ULL);
+
+	memblock_x86_subtract_reserved(range, count);
+	nr_range = clean_sort_range(range, count);
+
+	*rangep = range;
+	return nr_range;
+}
+
+int get_free_all_memory_range(struct range **rangep, int nodeid)
+{
+    unsigned long end_pfn = -1UL;
+
+	end_pfn = max_low_pfn;
+
+	return __get_free_all_memory_range(rangep, nodeid, 0, end_pfn);
 }

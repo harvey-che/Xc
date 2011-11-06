@@ -32,6 +32,7 @@ extern struct e820map e820;
 
 int sanitize_e820_map(struct e820entry *biosmap, int max_nr_map, u32 *pnr_map);
 void memblock_x86_fill(void);
+extern unsigned long e820_end_of_ram_pfn(void);
 
 #endif
 

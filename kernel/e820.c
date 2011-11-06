@@ -1,7 +1,11 @@
 #include <asm/e820.h>
 #include <Xc/kernel.h>
+#include <asm/page_types.h>
+#include <Xc/memblock.h>
 
 struct e820map e820;
+
+#define MAX_ARCH_PFN (1ULL << (32 - PAGE_SHIFT))
 
 int sanitize_e820_map(struct e820entry *biosmap, int max_nr_map,
 			     u32 *pnr_map)
@@ -185,4 +189,42 @@ void memblock_x86_fill(void)
 	}
 
 	memblock_analyze();
+}
+
+/* Find the largest page frame number we have available*/
+static unsigned long e820_end_pfn(unsigned long limit_pfn, unsigned type)
+{
+    int i;
+	unsigned long last_pfn = 0;
+	unsigned long max_arch_pfn = MAX_ARCH_PFN;
+
+	for (i = 0; i < e820.nr_map; i++) {
+        struct e820entry *ei = &e820.map[i];
+		unsigned long start_pfn;
+		unsigned long end_pfn;
+
+		if (ei->type != type)
+			continue;
+		start_pfn = ei->addr >> PAGE_SHIFT;
+		end_pfn = (ei->addr + ei->size) >> PAGE_SHIFT;
+
+		if (start_pfn >= limit_pfn)
+			continue;
+		if (end_pfn > limit_pfn) {
+            last_pfn = limit_pfn;
+			break;
+		}
+		if (end_pfn > last_pfn)
+			last_pfn = end_pfn;
+	}
+
+	if (last_pfn > max_arch_pfn)
+		last_pfn = max_arch_pfn;
+
+	return last_pfn;
+}
+
+unsigned long e820_end_of_ram_pfn(void)
+{
+    return e820_end_pfn(MAX_ARCH_PFN, E820_RAM);
 }

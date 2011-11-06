@@ -8,7 +8,7 @@
 
 /* 
  * asm/page.h -> asm/page_types.h
- *            -> asm/page_32.h -> asm/page_32_types.h
+ *            -> asm/page_32.h
  *            -> asm-generic/memory_model.h 
  * 
  */ 

@@ -33,19 +33,13 @@ typedef unsigned int __u32;
 typedef signed long long __s64;
 typedef unsigned long long __u64;
 
-typedef int size_t;
-
-typedef u32 phys_addr_t;
-
-typedef phys_addr_t resource_size_t;
-
 
 #endif  /* __ASSEMBLY */
 
 #ifndef __ASSEMBLY__
 #ifdef __KERNEL__
 
-typedef u32 phys_addr_t;
+typedef u64 phys_addr_t;
 
 typedef phys_addr_t resource_size_t;
 

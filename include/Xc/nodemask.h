@@ -3,11 +3,12 @@
 
 #include <Xc/numa.h>
 
+/* CONFIG_HIGHMEM is not defined */
 enum node_states {
     N_POSSIBLE,
 	N_ONLINE,
 	N_NORMAL_MEMORY,
-	N_HIGH_MEMORY,
+	N_HIGH_MEMORY = N_NORMAL_MEMORY,
 	N_CPU,
 	NR_NODE_STATES
 };

@@ -8,6 +8,9 @@
 
 int printk(const char *format, ...);
 void panic(const char *format, ...);
+char *itoah(char *str, unsigned long num);
+int early_print_str(const char *str);
+int early_painc(const char *str);
 
 #define __round_mask(x, y) ((__typeof__(x))((y) - 1))
 #define round_up(x, y) ((((x) - 1) | __round_mask(x, y)) + 1)
@@ -34,7 +37,7 @@ void panic(const char *format, ...);
 		typeof(x) _min1 = (x);    \
 		typeof(y) _min2 = (y);    \
 		(void) (&_min1 == &_min2);    \
-		_min1 > _min2 ? _min1 : _min2;})
+		_min1 < _min2 ? _min1 : _min2;})
 
 #define ULONG_MAX (~0UL)
 

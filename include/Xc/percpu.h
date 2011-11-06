@@ -61,9 +61,16 @@
  */
 
 /* asm-generic/percpu.h */
+#ifdef CONFIG_SMP
+
+#else
+
+#define per_cpu(var, cpu)    (*((void)(cpu), VERIFY_PERCPU_PTR(&(var))))
 
 #define this_cpu_ptr(ptr)    per_cpu_ptr(ptr, 0)
 #define __this_cpu_ptr(ptr)  this_cpu_ptr(ptr)
+
+#endif
 /* end -- asm-generic/percpu.h */
 
 

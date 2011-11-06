@@ -4,9 +4,9 @@ SEG_SETUP=0x9000
 OFFSET_SETUP=0x200
 SEG_KERNEL=0x1000
 
-/* size of the sections in sector, so the setup is 2k in byte */
+/* size of the sections in sector, so the setup is up to 8.5k in byte */
 SIZE_SETUP=17
-/* the kernel is 512K in byte */
+/* the kernel is up to 512K in byte */
 SIZE_KERNEL=1024
 
 

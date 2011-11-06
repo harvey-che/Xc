@@ -86,7 +86,7 @@ static inline int oo_order(struct kmem_cache_order_objects x)
 
 static inline int oo_objects(struct kmem_cache_order_objects x)
 {
-    return x.x && OO_MASK;
+    return x.x & OO_MASK;
 }
 
 static inline int order_objects(int order, unsigned long size, int reserved)
@@ -1069,13 +1069,16 @@ static void early_kmem_cache_node_alloc(int node)
     struct page *page;
 	struct kmem_cache_node *n;
 
+	/* BUG_ON(kmem_cache_node->size < sizeof(struct kmem_cache_node)); */
 	page = new_slab(kmem_cache_node, GFP_NOWAIT, node);
 
+	/* BUG_ON(!page); */
 	if (page_to_nid(page) != node) {
-
+        panic("SLUB: Unable to allocate memory from node");
 	}
 
 	n = page->freelist;
+	/* BUG_ON(!n); */
 	page->freelist = get_freepointer(kmem_cache_node, n);
 	page->inuse++;
 	page->frozen = 0;
@@ -1113,8 +1116,28 @@ static int init_kmem_cache_nodes(struct kmem_cache *s)
 	return 1;
 }
 
+static unsigned int init_tid(int cpu)
+{
+    return cpu;
+}
+
+void init_kmem_cache_cpus(struct kmem_cache *s)
+{
+	int cpu;
+    for_each_possible_cpu(cpu)
+		per_cpu_ptr(kmem_cache_node->cpu_slab, cpu)->tid = init_tid(cpu);
+    
+}
 static inline int alloc_kmem_cache_cpus(struct kmem_cache *s)
 {
+	/*By harvey, initialize kmem_cache_cpu */
+	unsigned long size;
+	size = offsetof(struct kmem_cache, node) + nr_node_ids * sizeof(struct kmem_cache_node *);
+	s->cpu_slab = (void *)s + ALIGN(size, 2 * sizeof(void *));
+	/* end -- by harvey */
+	if (!s->cpu_slab)
+		return 0;
+	init_kmem_cache_cpus(s);
     return 1;
 }
 
@@ -1205,10 +1228,14 @@ void kmem_cache_init(void)
 	struct kmem_cache *temp_kmem_cache_node;
 	unsigned long kmalloc_size;
 
-	kmem_size = offsetof(struct kmem_cache, node) + 
+	/* By harvey, alloc memory for kmem_cache_cpu */
+	kmalloc_size = offsetof(struct kmem_cache, node) + 
 		nr_node_ids * sizeof(struct kmem_cache_node *);
 
-	kmalloc_size = ALIGN(kmem_size, cache_line_size());
+	kmalloc_size = ALIGN(kmalloc_size, 2 * sizeof(void *));
+	kmalloc_size = kmalloc_size + nr_cpu_ids * sizeof(struct kmem_cache_cpu);
+    kmalloc_size = ALIGN(kmalloc_size, cache_line_size());
+
 	order = get_order(2 * kmalloc_size);
 	kmem_cache = (void *)__get_free_pages(GFP_NOWAIT, order);
 
@@ -1218,20 +1245,33 @@ void kmem_cache_init(void)
 			        sizeof(struct kmem_cache_node), 0,
 			        SLAB_HWCACHE_ALIGN | SLAB_PANIC, NULL);
     
+	/*By harvey, initialize kmem_cache_cpu
+	kmem_cache_node->cpu_slab = kmem_cache_node + kmalloc_size2;
+    for_each_possible_cpu(cpu)
+		per_cpu_ptr(kmem_cache_node->cpu_slab, cpu)->tid = cpu;
+	end -- by harvey */
+
 	/* hotplug_memory_notifier(slab_memory_callback, SLAB_CALLBACK_PRI); */
 
     slab_state = PARTIAL;
 	temp_kmem_cache = kmem_cache;
 
-	kmem_cache_open(kmem_cache, "kmem_cache", kmem_size, 0, 
+	/* By harvey, alloc memory for kmem_cache_cpu at the tail, so size is kmalloc_size, instead of kmem_size*/
+	kmem_cache_open(kmem_cache, "kmem_cache", kmalloc_size, 0, 
 			        SLAB_HWCACHE_ALIGN | SLAB_PANIC, NULL);
 	kmem_cache = kmem_cache_alloc(kmem_cache, GFP_NOWAIT);
-	memcpy(kmem_cache, temp_kmem_cache, kmem_size);
+	memcpy(kmem_cache, temp_kmem_cache, kmalloc_size);
+    
+	/*By harvey, relocate the per-cpu cpu_slab*/
+	kmem_cache->cpu_slab = (void *)kmem_cache + ALIGN(kmem_size, 2 * sizeof(void *));
 
 	temp_kmem_cache_node = kmem_cache_node;
 
 	kmem_cache_node = kmem_cache_alloc(kmem_cache, GFP_NOWAIT);
-	memcpy(kmem_cache_node, temp_kmem_cache_node, kmem_size);
+	memcpy(kmem_cache_node, temp_kmem_cache_node, kmalloc_size);
+
+	/*By harvey, relocate the per-cpu cpu_slab*/
+	kmem_cache_node->cpu_slab = (void *)kmem_cache_node + ALIGN(kmem_size, 2 * sizeof(void *));
 
     kmem_cache_bootstrap_fixup(kmem_cache_node);
     caches++;
@@ -1265,10 +1305,12 @@ void kmem_cache_init(void)
 		caches++;
 	}
 
+	/*
 	for (i = KMALLOC_SHIFT_LOW; i < SLUB_PAGE_SHIFT; i++) {
         kmalloc_caches[i] = create_kmalloc_cache("kmalloc", 1 << i, 0);
 		caches++;
 	}
+	*/
 
 	slab_state = UP;
 
@@ -1290,15 +1332,18 @@ void kmem_cache_init(void)
 		 */
 	}
 
+	/*
 	for (i = 0; i < SLUB_PAGE_SHIFT; i++) {
         struct kmem_cache *s = kmalloc_caches[i];
 
 		if (s && s->size) {
-            /* char *name = kasprintf(GFP_NOWAIT, "dma-kmalloc-%d", s->objsize); */
+            // char *name = kasprintf(GFP_NOWAIT, "dma-kmalloc-%d", s->objsize);
 			char *name = "dma-kmalloc";
             kmalloc_dma_caches[i] = create_kmalloc_cache(name, s->objsize, 
 					                                     SLAB_CACHE_DMA);
 		}
 	}
+	*/
 }
 
+void kmem_cache_late(void) {}

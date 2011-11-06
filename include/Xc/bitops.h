@@ -71,6 +71,17 @@ static inline void __clear_bit_unlock(unsigned nr, volatile unsigned long *addr)
 	__clear_bit(nr, addr);
 }
 
+static inline int __test_and_clear_bit(int nr, volatile unsigned long *addr)
+{
+    int oldbit;
+
+	asm volatile("btr %2, %1\n\t"
+			     "sbb %0, %0"
+				 : "=r"(oldbit), ADDR
+				 : "Ir"(nr));
+	return oldbit;
+}
+
 #define BITS_PER_LONG 32
 
 #define BIT_MASK(nr) (1UL << ((nr) % BITS_PER_LONG))

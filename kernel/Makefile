@@ -1,5 +1,5 @@
 OBJ_S:=head_32.o
-OBJ_C:=init.o printk.o panic.o init_task.o e820.o wait.o sched.o
+OBJ_C:=init.o printk.o panic.o init_task.o e820.o wait.o sched.o range.o traps.o common.o
 OBJ_FILES:=$(OBJ_S) $(OBJ_C)
 
 kernel.o:$(OBJ_FILES)

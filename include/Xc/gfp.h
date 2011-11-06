@@ -75,7 +75,7 @@
 extern gfp_t gfp_allowed_mask;
 
 
-#define OPT_ZONE_HIGHMEM ZONE_HIGHMEM
+#define OPT_ZONE_HIGHMEM ZONE_NORMAL
 #define OPT_ZONE_DMA ZONE_DMA
 #define OPT_ZONE_DMA32 ZONE_NORMAL
 

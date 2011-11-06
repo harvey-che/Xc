@@ -21,6 +21,12 @@ static inline void atomic_add(int i, atomic_t *v)
 			: "ir"(i));
 }
 
+static inline void atomic_dec(atomic_t *v)
+{
+    asm volatile(LOCK_PREFIX "decl %0"
+			     : "+m"(v->counter));
+}
+
 static inline int atomic_read(const atomic_t *v)
 {
     return (*(volatile int *)&(v)->counter);
@@ -44,6 +50,12 @@ static inline void atomic_long_add(long i, atomic_long_t *l)
 {
     atomic_t *v = (atomic_t *)l;
 	atomic_add(i, v);
+}
+
+static inline void atomic_long_dec(atomic_long_t *l)
+{
+    atomic_t *v = (atomic_t *)l;
+	atomic_dec(v);
 }
 
 static inline long atomic_long_read(atomic_long_t *l)

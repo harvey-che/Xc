@@ -14,4 +14,7 @@ static inline int zone_reclaim(struct zone *z, gfp_t mask, unsigned int order)
     return 0;
 }
 
+extern unsigned long totalram_pages;
+extern unsigned long totalreserve_pages;
+
 #endif

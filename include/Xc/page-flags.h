@@ -86,6 +86,10 @@ enum pageflags {
 	static inline void __ClearPage##uname(struct page *page)  \
     { __clear_bit(PG_##lname, &page->flags); }
 
+#define __TESTCLEARFLAG(uname, lname)    \
+	static inline int __TestClearPage##uname(struct page *page)    \
+    { return __test_and_clear_bit(PG_##lname, &page->flags); }
+
 #define PAGEFLAG(uname, lname) TESTPAGEFLAG(uname, lname)    \
 	SETPAGEFLAG(uname, lname) CLEARPAGEFLAG(uname, lname)
 
@@ -114,12 +118,17 @@ static inline int PageCompound(struct page *page)
     return page->flags & ((1L << PG_head) | (1L << PG_tail));
 }
 
-__PAGEFLAG(Head, head)
+PAGEFLAG(Reserved, reserved)
+__CLEARPAGEFLAG(Reserved,reserved)
 
+__PAGEFLAG(Head, head)
 CLEARPAGEFLAG(Head, head)
 
 __PAGEFLAG(Tail, tail)
 __PAGEFLAG(Slab, slab)
+
+__TESTCLEARFLAG(Mlocked, mlocked)
+
 /*
 PAGEFLAG(HWPoison, hwpoison)
 TESTSCFLAG(HWpoison, hwposion)

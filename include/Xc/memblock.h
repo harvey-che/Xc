@@ -4,6 +4,7 @@
 #ifdef __KERNEL__
 
 #include <Xc/types.h>
+#include <Xc/range.h>
 
 #define MEMBLOCK_ERROR 0
 
@@ -40,8 +41,14 @@ extern struct memblock memblock;
 
 u64 memblock_find_in_range(u64 start, u64 end, u64 size, u64 align);
 void memblock_x86_reserve_range(u64 start, u64 end, char *name);
+void memblock_x86_register_active_regions(int nid, unsigned long start_pfn, 
+		                                  unsigned long last_pfn);
 
 extern void memblock_init(void);
+extern void memblock_analyze(void);
+extern long memblock_add(phys_addr_t base, phys_addr_t size);
+
+int get_free_all_memory_range(struct range **rangep, int nodeid);
 
 #endif
 
