@@ -190,7 +190,6 @@ static int __setup_irq(unsigned int irq, struct irq_desc *desc, struct irqaction
 	unsigned long flags, thread_mask = 0;
 	int ret, nested, shared = 0;
 	cpumask_var_t mask;
-    int volatile counter_debug = 128;
 
 	if (!desc)
 		return -EINVAL;
@@ -325,7 +324,6 @@ static int __setup_irq(unsigned int irq, struct irq_desc *desc, struct irqaction
 		__enable_irq(desc, irq, false);
 	}
 
-    while (counter_debug--);	
 
 	raw_spin_unlock_irqrestore(&desc->lock, flags);
 

@@ -89,7 +89,7 @@ page_pde_offset = (__PAGE_OFFSET >> 20)
 1:
     movl $(__KERNEL_DS), %eax
 	movl %eax,  %ss
-	movl $(__KERNEL_DS), %eax
+	movl $(__USER_DS), %eax
 	movl %eax, %ds
 	movl %eax, %es
 
@@ -104,56 +104,7 @@ page_pde_offset = (__PAGE_OFFSET >> 20)
     
 	pushl $0
 	movl %esp, %ebp
-/*
-.globl init_8259AC
-init_8259AC:
-	movb $0x11, %al
-    outb %al, $0x20
-				 call io_delay
-	             movb $0x30, %al
-			     outb %al, $0x21
-				 call io_delay
-	             movb $0x4, %al
-				 outb %al, $0x21
-				 call io_delay
-	             movb $0x1, %al
-				 outb %al, $0x21
-				 call io_delay
-				 
-	             movb $0x11, %al
-				 outb %al, $0xa0
-				 call io_delay
-	             movb $0x38, %al
-				 outb %al, $0xa1
-				 call io_delay
-	             movb $0x2, %al
-				 outb %al, $0xa1
-				 call io_delay
-	             movb $0x1, %al
-				 outb %al, $0xa1
-				 call io_delay
-				 
-	             movb $0xfe, %al
-				 outb %al, $0x21
-				 call io_delay
-	             movb $0xff, %al
-				 outb %al, $0xa1
-				 call io_delay
-				 jmp 1f
 
-				 io_delay:
-				 nop
-				 nop
-				 nop
-				 nop
-				 nop
-				 nop
-				 nop
-				 nop
-				 ret
-
-				 1:
-*/
     jmp start_kernel
 
 setup_idt:
@@ -185,7 +136,7 @@ rp_sidt:
 	set_early_handler handler=early_illegal_opcode, trapno=6
 	set_early_handler handler=early_protection_fault, trapno=13
 	set_early_handler handler=early_page_fault, trapno=14
-    set_early_handler handler=early_timer_handler, trapno=48	
+    /* set_early_handler handler=early_timer_handler, trapno=48	*/
 	ret
 
 .globl tick2

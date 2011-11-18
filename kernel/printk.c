@@ -63,13 +63,13 @@ int early_print_str(const char *str)
 
 				 /* move the whole video area upward by one row */
 				 "movl $20 * 24, %%ecx\n\t"
-				 "movl $0xb8000 + 160, %0\n\t"
-				 "movl $0xb8000, %%edi\n\t"
+				 "movl $0xc00b8000 + 160, %0\n\t"
+				 "movl $0xc00b8000, %%edi\n\t"
 				 "rep;movsl\n\t"
 
 				 "movl $20, %%ecx\n\t"
 				 "xorl %%eax, %%eax\n\t"
-				 "movl $0xb8000 + 24 * 80, %%edi\n\t"
+				 "movl $0xc00b8000 + 24 * 80, %%edi\n\t"
 				 "rep;stosl\n\t"
 
                  "popl %0\n\t"
@@ -83,7 +83,7 @@ int early_print_str(const char *str)
 				 "mulb %%cl\n\t"
 				 "addw video_area_column, %%ax\n\t"
 				 "addw %%ax, %%ax\n\t"
-				 "addl $0xb8000, %%eax\n\t"
+				 "addl $0xc00b8000, %%eax\n\t"
 				 "movl %%eax, %%edi\n\t"
 
 				 "movb %%bl, %%al\n\t"

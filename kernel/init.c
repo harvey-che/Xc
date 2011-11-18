@@ -112,7 +112,6 @@ void start_kernel()
 	local_irq_disable();
 	early_boot_irqs_disabled = true;
 
-	early_print_str("A\n");
 
 	/* i386_start_kernel()->memblock_init(); */
 	memblock_init();
@@ -165,11 +164,6 @@ void start_kernel()
 	early_boot_irqs_disabled = false;
 	local_irq_enable();
 
-	while(1) {
-		unsigned int debug;
-		debug++;
-	}
-
 
 	gfp_allowed_mask = __GFP_BITS_MASK;
 	kmem_cache_init_late();
@@ -177,7 +171,12 @@ void start_kernel()
 	if (late_time_init)
 		late_time_init();
 
+
 	calibrate_delay_converge();
+	while (1) {
+        int debug = 0;
+		debug++;
+	}
 
 	/* Test Routine */
     memset(kmem_list, 0, sizeof(kmem_list)); 

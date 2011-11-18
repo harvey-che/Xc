@@ -17,7 +17,7 @@ struct irq_desc irq_desc[NR_IRQS] =  {
     [0 ... NR_IRQS - 1] = {
         .handle_irq = handle_bad_irq,
 		.depth = 1,
-		.lock = __RAW_SPIN_LOCK_UNLOCKED(irq_desc->lock), /* By harvey, irq_desc is type name or array name? */
+		.lock = __RAW_SPIN_LOCK_UNLOCKED(irq_desc->lock),
 	}
 };
 

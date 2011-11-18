@@ -294,13 +294,9 @@ void init_8259A(int auto_eoi)
 
 	udelay(100);
 
-	/*
 	outb(cached_master_mask, PIC_MASTER_IMR);
 	outb(cached_slave_mask, PIC_SLAVE_IMR);
-	*/
 
-	outb(0xfe, PIC_MASTER_IMR);
-	outb(0xff, PIC_SLAVE_IMR);
 	raw_spin_unlock_irqrestore(&i8259A_lock, flags);
 }
 
