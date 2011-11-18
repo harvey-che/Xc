@@ -10,6 +10,7 @@
 #include <asm/sections.h>
 #include <Xc/memblock.h>
 #include <Xc/swap.h>
+#include <asm/io.h>
 
 unsigned long pgt_buf_start = 0;
 unsigned long pgt_buf_end = 0;

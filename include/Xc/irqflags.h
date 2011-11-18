@@ -1,9 +1,10 @@
 #ifndef _XC_IRQFLAGS_H
 #define _XC_IRQFLAGS_H
 
-#include <Xc/typecheck.h>
 #include <asm/processor-flags.h>
 
+#ifndef __ASSEMBLY__
+#include <Xc/typecheck.h>
 /*
  * linux/irqflags.h -> asm/irqflags.h
  */
@@ -82,6 +83,11 @@ static inline int arch_irqs_disabled(void)
 
 /* end -- x86/asm/irqflags.h  */
 
+#define trace_softirqs_on(ip) do {} while (0)
+#define trace_softirqs_off(ip) do {} while (0)
+#define trace_hardirq_enter() do {} while (0)
+#define trace_hardirq_exit() do {} while (0)
+
 #define raw_local_irq_save(flags)    \
 	do {                             \
 		    typecheck(unsigned long , flags);   \
@@ -113,5 +119,12 @@ static inline int arch_irqs_disabled(void)
 #define local_irq_disable() do { raw_local_irq_disable(); } while (0)
 
 #define irqs_disabled() (raw_irqs_disabled())
+
+#else  /* __ASSEMBLY__ */
+
+#define ENABLE_INTERRUPTS(x) sti
+#define DISABLE_INTERRUPTS(x) cli
+
+#endif /* __ASSEMBLY__ */
 
 #endif

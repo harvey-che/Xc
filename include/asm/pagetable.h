@@ -81,6 +81,11 @@ static inline pte_t pfn_pte(u32 pfn, u32  pgprot)
     return __pte(pfn << PAGE_SHIFT | pgprot);
 }
 
-#endif
+static inline void clone_pgd_range(pgd_t *dst, pgd_t *src, int count)
+{
+    memcpy(dst, src, count * sizeof(pgd_t));
+}
+
+#endif /* __ASSEMBLY__ */
 
 #endif

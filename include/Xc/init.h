@@ -3,5 +3,9 @@
 
 #define __init
 #define __init_memblock
+#define __cpuinit
+#define __initdata
+
+extern void (* late_time_init)(void);
 
 #endif

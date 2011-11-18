@@ -3,6 +3,7 @@
 #include <Xc/memblock.h>
 #include <Xc/slab.h>
 #include <Xc/string.h>
+#include <asm/io.h>
 #include "internal.h"
 
 unsigned long max_pfn;

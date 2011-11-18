@@ -1305,12 +1305,12 @@ void kmem_cache_init(void)
 		caches++;
 	}
 
-	/*
+	
 	for (i = KMALLOC_SHIFT_LOW; i < SLUB_PAGE_SHIFT; i++) {
         kmalloc_caches[i] = create_kmalloc_cache("kmalloc", 1 << i, 0);
 		caches++;
 	}
-	*/
+	
 
 	slab_state = UP;
 
@@ -1346,4 +1346,4 @@ void kmem_cache_init(void)
 	*/
 }
 
-void kmem_cache_late(void) {}
+void kmem_cache_init_late(void) {}

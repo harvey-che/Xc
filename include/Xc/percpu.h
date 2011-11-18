@@ -67,12 +67,37 @@
 
 #define per_cpu(var, cpu)    (*((void)(cpu), VERIFY_PERCPU_PTR(&(var))))
 
+#define __get_cpu_var(var)   (*VERIFY_PERCPU_PTR(&(var)))
+
 #define this_cpu_ptr(ptr)    per_cpu_ptr(ptr, 0)
 #define __this_cpu_ptr(ptr)  this_cpu_ptr(ptr)
 
 #endif
 /* end -- asm-generic/percpu.h */
 
+#define get_cpu_var(var) (*({    \
+			preempt_disable();   \
+			&__get_cpu_var(var); }))
+
+#define put_cpu_var(var) do {    \
+	(void) &(var);               \
+	preempt_enable(); } while (0)
+
+#define percpu_read(var)    \
+	({                      \
+	     typeof(var) *pr_ptr__ = &(var);    \
+	     typeof(var) pr_ret__;              \
+	     pr_ret__ = get_cpu_var(*pr_ptr__); \
+	     put_cpu_var(*pr_ptr__);            \
+	     pr_ret__; })
+
+#define __percpu_generic_to_op(var, val, op)    \
+	do {                                        \
+		typeof(var) *pgto_ptr__ = &(var);       \
+		get_cpu_var(*pgto_ptr__) op val;        \
+		put_cpu_var(*pgto_ptr__); } while (0)
+
+#define percpu_write(var, val) __percpu_generic_to_op(var, (val), =)
 
 #define __this_cpu_generic_to_op(pcp, val, op)    \
 	do {           \

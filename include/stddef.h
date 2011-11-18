@@ -1,6 +1,8 @@
 #ifndef _XC_STDDEF_H
 #define _XC_STDDEF_H
 
+#ifndef __ASSEMBLY__
+
 #undef NULL
 #if defined(__cplusplus)
 #define NULL 0
@@ -19,5 +21,7 @@ enum {
 #define offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)
 
 //#endif
+
+#endif
 
 #endif

@@ -89,7 +89,7 @@ page_pde_offset = (__PAGE_OFFSET >> 20)
 1:
     movl $(__KERNEL_DS), %eax
 	movl %eax,  %ss
-	movl $(__USER_DS), %eax
+	movl $(__KERNEL_DS), %eax
 	movl %eax, %ds
 	movl %eax, %es
 
@@ -104,6 +104,56 @@ page_pde_offset = (__PAGE_OFFSET >> 20)
     
 	pushl $0
 	movl %esp, %ebp
+/*
+.globl init_8259AC
+init_8259AC:
+	movb $0x11, %al
+    outb %al, $0x20
+				 call io_delay
+	             movb $0x30, %al
+			     outb %al, $0x21
+				 call io_delay
+	             movb $0x4, %al
+				 outb %al, $0x21
+				 call io_delay
+	             movb $0x1, %al
+				 outb %al, $0x21
+				 call io_delay
+				 
+	             movb $0x11, %al
+				 outb %al, $0xa0
+				 call io_delay
+	             movb $0x38, %al
+				 outb %al, $0xa1
+				 call io_delay
+	             movb $0x2, %al
+				 outb %al, $0xa1
+				 call io_delay
+	             movb $0x1, %al
+				 outb %al, $0xa1
+				 call io_delay
+				 
+	             movb $0xfe, %al
+				 outb %al, $0x21
+				 call io_delay
+	             movb $0xff, %al
+				 outb %al, $0xa1
+				 call io_delay
+				 jmp 1f
+
+				 io_delay:
+				 nop
+				 nop
+				 nop
+				 nop
+				 nop
+				 nop
+				 nop
+				 nop
+				 ret
+
+				 1:
+*/
     jmp start_kernel
 
 setup_idt:
@@ -135,8 +185,22 @@ rp_sidt:
 	set_early_handler handler=early_illegal_opcode, trapno=6
 	set_early_handler handler=early_protection_fault, trapno=13
 	set_early_handler handler=early_page_fault, trapno=14
-	
+    set_early_handler handler=early_timer_handler, trapno=48	
 	ret
+
+.globl tick2
+tick2:
+    .byte 'B'
+	.byte 0xF
+early_timer_handler:
+    pushl %eax
+	incb tick2
+	movw tick2, %ax
+	movw %ax, 0xc00b8000
+	movb $0x20, %al
+	outb %al, $0x20
+	popl %eax
+    iret
 
 early_divide_err:
     xor %edx, %edx
@@ -177,6 +241,7 @@ boot_gdt_descr:
 	.long boot_gdt - __PAGE_OFFSET
     
 	.word 0
+.globl idt_descr
 idt_descr:
     .word IDT_ENTRIES * 8 -1
 	.long idt_table
@@ -200,6 +265,7 @@ boot_gdt:
 initial_page_table:
     .fill 1024, 4, 0
 */
+
 .globl swapper_pg_dir
 swapper_pg_dir:
     .fill 1024, 4, 0

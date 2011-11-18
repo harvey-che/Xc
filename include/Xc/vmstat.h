@@ -3,6 +3,7 @@
 
 #include <Xc/atomic.h>
 #include <Xc/mmzone.h>
+#include <Xc/mm.h>
 
 extern atomic_long_t vm_stat[NR_VM_ZONE_STAT_ITEMS];
 
@@ -40,7 +41,7 @@ static inline void __dec_zone_page_state(struct page *page, enum zone_stat_item 
     __dec_zone_state(page_zone(page), item);
 }
 
-#endif
+#endif /* CONFIG_SMP */
 
 #ifdef CONFIG_NUMA
 

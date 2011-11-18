@@ -12,12 +12,14 @@
 #define PAGE_MASK  (~(PAGE_SIZE - 1))
 
 #define __PAGE_OFFSET _AC(0xc0000000, UL)
-#define PAGE_OFFSET   ((unsigned long)__PAGE_OFFSET)
 
 #define THREAD_ORDER 1
 #define THREAD_SIZE (PAGE_SIZE << THREAD_ORDER)
 
 #ifndef __ASSEMBLY__
+
+#define PAGE_OFFSET   ((unsigned long)__PAGE_OFFSET)
+
 extern void initmem_init(void);
 extern void free_initmem(void);
 

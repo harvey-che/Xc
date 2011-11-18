@@ -61,6 +61,8 @@ struct hlist_node {
 
 typedef int bool;
 
+typedef int clockid_t;
+
 #define pgoff_t unsigned long
 
 typedef unsigned gfp_t;
@@ -68,13 +70,6 @@ typedef unsigned gfp_t;
 #define DECLARE_BITMAP(name, bits)    \
 	unsigned long name[BITS_TO_LONGS(bits)]
 
-/* linux/bitmap.h  */
-#define BITMAP_LAST_WORD_MASK(nbits)    \
-	(              \
-	    ((nbits) % BITS_PER_LONG) ?     \
-				   (1UL << ((nbits) % BITS_PER_LONG))-1 : ~0UL    \
-	)
-/* end -- linux/bitmap.h */
 
 #endif  /* __KERNEL__ */
 #endif  /* __ASSEMBLY__ */

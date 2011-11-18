@@ -5,6 +5,7 @@
  * linux/bitops.h -> asm/bitops.h
  */
 
+#include <Xc/types.h>
 #include <Xc/compiler-gcc.h>
 #include <asm/alternative.h>
 
@@ -82,6 +83,16 @@ static inline int __test_and_clear_bit(int nr, volatile unsigned long *addr)
 	return oldbit;
 }
 
+static inline int test_and_set_bit(int nr, volatile unsigned long *addr)
+{
+    int oldbit;
+
+	asm volatile(LOCK_PREFIX "bts %2, %1\n\t"
+			     "sbb %0, %0" : "=r" (oldbit), ADDR : "Ir" (nr) : "memory");
+	return oldbit;
+}
+
+/* Defined in bitsperlong.h */
 #define BITS_PER_LONG 32
 
 #define BIT_MASK(nr) (1UL << ((nr) % BITS_PER_LONG))
@@ -254,7 +265,7 @@ static inline unsigned long ffz(unsigned long word)
 
 /* asm-generic/bitops/fls64.h */
 
-static int fls64(__u64 x)
+static inline int fls64(__u64 x)
 {
     __u32 h = x >> 32;
 	if (h)

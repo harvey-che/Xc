@@ -47,4 +47,7 @@ typedef struct spinlock {
  */
 #define __RAW_SPIN_LOCK_UNLOCKED(lockname)     \
 	(raw_spinlock_t) __RAW_SPIN_LOCK_INITIALIZER(lockname)
+
+#define DEFINE_RAW_SPINLOCK(x) raw_spinlock_t x = __RAW_SPIN_LOCK_UNLOCKED(x)
+
 #endif

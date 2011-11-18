@@ -1,6 +1,7 @@
 #ifndef _XC_NODEMASK_H
 #define _XC_NODEMASK_H
 
+#include <Xc/types.h>
 #include <Xc/numa.h>
 
 /* CONFIG_HIGHMEM is not defined */
@@ -29,6 +30,9 @@ static void node_set_state(int node, enum node_states state)
 static void node_clear_state(int node, enum node_states state)
 {
 }
+
+#define first_online_node 0
+#define next_online_node(nid) (MAX_NUMNODES)
 
 #define for_each_node_state(node, __state)  \
 	for ((node) = 0; (node) == 0; (node) = 1)

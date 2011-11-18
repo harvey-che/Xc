@@ -2,6 +2,7 @@
 #define _XC_SLAB_H
 
 #include <Xc/gfp.h>
+#include <Xc/init.h>
 #include <stddef.h>
 
 #define ZERO_SIZE_PTR ((void *)16)
@@ -29,7 +30,7 @@
 
 
 void kmem_cache_init(void);
-void kmem_cache_init_late(void);
+void __init kmem_cache_init_late(void);
 
 static void *kmalloc_node(size_t size, gfp_t flags, int node)
 {
@@ -53,5 +54,7 @@ static inline void *kmem_cache_alloc_node(struct kmem_cache *cachep, gfp_t flags
     return kmem_cache_alloc(cachep, flags);
 }
 
-void kmem_cache_init(void);
+#define kmalloc_track_caller(size, flags)    \
+	__kmalloc(size, flags)
+
 #endif

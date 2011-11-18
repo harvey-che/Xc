@@ -7,14 +7,31 @@
 #include <Xc/bootmem.h>
 #include <Xc/memblock.h>
 #include <asm/sections.h>
+#include <Xc/jiffies.h>
+#include <Xc/delay.h>
+#include <Xc/interrupt.h>
+#include <Xc/sched.h>
 
 unsigned long max_low_pfn_mapped;
 unsigned long max_pfn_mapped;
 
 struct boot_params boot_params;
 
+bool early_boot_irqs_disabled;
+
 unsigned long _brk_start = (unsigned long)__brk_base;
 unsigned long _brk_end = (unsigned long)__brk_base;
+
+char volatile ticktick = 'c';
+extern char *tick2;
+
+void (* late_time_init)(void);
+
+extern void init_IRQ(void);
+
+extern void time_init(void);
+
+/* By harvey, for test */
 void *kmem_list[128];
 
 static void reserve_brk(void)
@@ -31,19 +48,57 @@ static void mm_init(void)
 	kmem_cache_init();
 }
 
-static inline void my_sti()
+#define LPS_PREC 8
+static unsigned long __cpuinit calibrate_delay_converge(void)
 {
-    asm volatile("sti\n\t"
-			     "jmp 1f\n\t"
-				 "1: \n\t"
-				 "jmp 2f\n\t"
-				 "2:"
-			     : : :"memory");
-}
+    unsigned long lpj, lpj_base, ticks, loopadd, loopadd_base, chop_limit;
+	int trials = 0, band = 0, trial_in_band = 0;
 
-static inline void my_cli()
-{
-    asm volatile("cli": : :"memory");
+	lpj = (1 << 12);
+
+	ticks = jiffies;
+	while (ticks == jiffies)
+		;
+	ticks = jiffies;
+	do {
+        if (++trial_in_band == (1 << band)) {
+            ++band;
+			trial_in_band = 0;
+		}
+		__delay(lpj * band);
+		trials += band;
+	} while (ticks == jiffies);
+
+	trials -= band;
+	loopadd_base = lpj * band;
+	lpj_base = lpj * trials;
+
+recalibrate:
+	lpj = lpj_base;
+	loopadd = loopadd_base;
+
+	chop_limit = lpj >> LPS_PREC;
+	while (loopadd > chop_limit) {
+        lpj += loopadd;
+		ticks = jiffies;
+		while (ticks == jiffies)
+			;
+		ticks = jiffies;
+		__delay(lpj);
+		if (jiffies != ticks)
+			lpj -= loopadd;
+		loopadd >>= 1;
+	}
+
+	if (lpj + loopadd * 2 == lpj_base + loopadd_base * 2) {
+        lpj_base = lpj;
+		loopadd_base <<= 2;
+		goto recalibrate;
+	}
+
+	loops_per_jiffy = lpj;
+
+	return lpj;
 }
 
 void start_kernel()
@@ -55,6 +110,9 @@ void start_kernel()
 	early_print_str("Starting up...\n");
 
 	local_irq_disable();
+	early_boot_irqs_disabled = true;
+
+	early_print_str("A\n");
 
 	/* i386_start_kernel()->memblock_init(); */
 	memblock_init();
@@ -94,13 +152,33 @@ void start_kernel()
 
 	build_all_zonelists(NULL);
 
+    trap_init();
 	/* mm_init()->kmem_cache_init(); */
     mm_init();
 
+	early_irq_init();
+	init_IRQ();
+
+	time_init();
+
+
+	early_boot_irqs_disabled = false;
 	local_irq_enable();
 
+	while(1) {
+		unsigned int debug;
+		debug++;
+	}
+
+
 	gfp_allowed_mask = __GFP_BITS_MASK;
-	kmem_cache_late();
+	kmem_cache_init_late();
+
+	if (late_time_init)
+		late_time_init();
+
+	calibrate_delay_converge();
+
 	/* Test Routine */
     memset(kmem_list, 0, sizeof(kmem_list)); 
     kmem_list[0] = kmalloc(90, GFP_KERNEL);

@@ -1,3 +1,4 @@
+#include <Xc/init.h>
 #include <asm/desc.h>
 
 struct gdt_page gdt_page = { .gdt = {
@@ -19,3 +20,9 @@ struct gdt_page gdt_page = { .gdt = {
 	[GDT_ENTRY_PERCPU]             = GDT_ENTRY_INIT(0xc092, 0, 0xfffff),
 	GDT_STACK_CANARY_INIT
 } };
+
+
+void __cpuinit cpu_init(void)
+{
+    load_idt((const struct desc_ptr *)&idt_descr);
+}

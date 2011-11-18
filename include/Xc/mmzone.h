@@ -12,12 +12,18 @@
 #include <Xc/nodemask.h>
 
 
-/* asm/topology.h */
+/* linux/topology.h -> asm/topology.h -> asm-generic/topology.h */
 static inline int numa_node_id(void)
 {
     return 0;
 }
+
+#define numa_node_id numa_node_id
+
+#define cpu_to_node(cpu) ((void)(cpu), 0)
+
 /* end -- asm/topology.h*/
+
 
 #define MAX_ORDER 11
 #define MAX_ORDER_NR_PAGES (1 << (MAX_ORDER - 1))

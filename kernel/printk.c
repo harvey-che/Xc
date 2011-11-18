@@ -6,7 +6,7 @@ int printk(const char *format, ...)
 }
 
 
-int video_area_row = 2;
+int video_area_row = 1;
 int video_area_column = 0;
 
 

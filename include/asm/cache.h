@@ -8,4 +8,6 @@
 
 #define cache_line_size() L1_CACHE_BYTES
 
+#define __cacheline_aligned_in_smp
+
 #endif

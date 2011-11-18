@@ -1,3 +1,9 @@
+DEFINE_MACROS=-DCONFIG_X86_32 -DCONFIG_PREEMPT -DCONFIG_MMU
+
+export CFLAGS=-g -Wall -mregparm=3 -march=i386 -m32 -mpreferred-stack-boundary=2 -fomit-frame-pointer -ffreestanding -fno-toplevel-reorder -fno-strict-aliasing -fno-stack-protector -nostdinc -I../include -D__KERNEL__ $(DEFINE_MACROS)
+
+export AFLAGS:=$(CFLAGS) -D__ASSEMBLY__
+
 SUB_OBJS=kernel/kernel.o mm/mm.o lib/lib.o
 
 ALL:setup/setup.bin kernel.bin

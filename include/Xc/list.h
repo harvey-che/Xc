@@ -40,6 +40,12 @@ static inline void list_del(struct list_head *entry)
 	entry->prev = LIST_POISON2;
 }
 
+static inline void list_del_init(struct list_head *entry)
+{
+    __list_del_entry(entry);
+	INIT_LIST_HEAD(entry);
+}
+
 static inline void __list_add(struct list_head *new, struct list_head *prev, struct list_head *next)
 {
     next->prev = new;
@@ -71,4 +77,8 @@ static inline void list_move(struct list_head *list, struct list_head *head)
 
 #define list_entry(ptr, type, member)    \
 	container_of(ptr, type, member)
+
+#define HLIST_HEAD_INIT { .first = NULL }
+#define HLIST_HEAD(name) struct hlist_head name = { .first = NULL}
+#define INIT_HLIST_HEAD(ptr) ((ptr)->first = NULL)
 #endif

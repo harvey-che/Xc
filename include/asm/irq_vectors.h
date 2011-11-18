@@ -3,4 +3,16 @@
 
 #define NR_VECTORS    256
 
+#define FIRST_EXTERNAL_VECTOR    0x20
+
+#define NR_IRQS_LEGACY    16
+
+#define NR_IRQS     NR_IRQS_LEGACY
+
+#define SYSCALL_VECTOR 0x80
+
+/* 0x30 */
+#define IRQ0_VECTOR    ((FIRST_EXTERNAL_VECTOR + 16) & ~15)
+#define IRQ8_VECTOR    (IRQ0_VECTOR + 8)
+
 #endif

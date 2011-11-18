@@ -10,6 +10,9 @@
 
 /* spinlock_api_up.h */
 /* In UP system, spin_lock just disables kernel preemption */
+
+#define assert_raw_spin_locked(lock) do { (void)(lock); } while (0)
+
 #define __LOCK(lock)    \
 	do { preempt_disable(); (void)(lock); } while (0)
 

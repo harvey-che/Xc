@@ -6,6 +6,7 @@
 #include <asm/page_types.h>
 #include <Xc/string.h>
 
+#ifndef __ASSEMBLY__
 /* 
  * asm/page.h -> asm/page_types.h
  *            -> asm/page_32.h
@@ -28,6 +29,7 @@
 #define __va(x) ((void*)((unsigned long)(x) + PAGE_OFFSET))
 #define __pa(x) ((unsigned long)(x) - PAGE_OFFSET)
 
+/*
 static inline phys_addr_t virt_to_phys(volatile void *address)
 {
     return __pa(address);
@@ -37,10 +39,13 @@ static inline void *phys_to_virt(unsigned long address)
 {
     return __va(address);
 }
+*/
 
 static inline void clear_page(void *page)
 {
     memset(page, 0, PAGE_SIZE);
 }
+
+#endif /* __ASSEMBLY__ */
 
 #endif

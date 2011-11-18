@@ -8,10 +8,12 @@ setup.bin:setup.elf
 setup.elf:$(OBJ_FILES)
 	ld -Tsetup.ld -nostdlib -o setup.elf $(OBJ_FILES)>setup.map
 
-CFLAGS=-g -Wall -mregparm=3 -march=i386 -m32 -mpreferred-stack-boundary=2 -fomit-frame-pointer -ffreestanding -fno-toplevel-reorder -fno-strict-aliasing -fno-stack-protector -nostdinc -include code16gcc.h -I../include -D__KERNEL__
+#CFLAGS=-g -Wall -mregparm=3 -march=i386 -m32 -mpreferred-stack-boundary=2 -fomit-frame-pointer -ffreestanding -fno-toplevel-reorder -fno-strict-aliasing -fno-stack-protector -nostdinc -include code16gcc.h -I../include -D__KERNEL__
 
 
-AFLAGS=$(CFLAGS) -D__ASSEMBLY__
+CFLAGS:=$(CFLAGS) -include code16gcc.h
+
+#AFLAGS=$(CFLAGS) -D__ASSEMBLY__
 
 $(OBJ_S):%.o:%.S
 	gcc $(AFLAGS) -o $@ -c $<

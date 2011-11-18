@@ -3,7 +3,6 @@
 
 #include <Xc/const.h>
 
-#define CONFIG_X86_32          /********/
 
 #define GDT_ENTRY_BOOT_CS    2
 #define __BOOT_CS    (GDT_ENTRY_BOOT_CS * 8)
@@ -45,6 +44,7 @@
 
 #define GDT_ENTRY_PERCPU             (GDT_ENTRY_KERNEL_BASE + 15)
 
+/*  */
 #ifdef CONFIG_SMP
 
 #else
@@ -55,6 +55,7 @@
 
 #define GDT_ENTRY_STACK_CANARY       (GDT_ENTRY_KERNEL_BASE + 16)
 
+/*  */
 #ifdef CONFIG_CC_STACK_CANARY
 
 #else
@@ -69,10 +70,18 @@
 #define GDT_ENTRIES 32
 
 #define GDT_ENTRY_PNPBIOS_CS32    (GDT_ENTRY_PNPBIOS_BASE + 0)
-#define GDT_ENTRY_PNPBIOS_CS16    (GDT_ENTRY_PNPBIOS_BASE + 0)
-#define GDT_ENTRY_PNPBIOS_DS      (GDT_ENTRY_PNPBIOS_BASE + 0)
-#define GDT_ENTRY_PNPBIOS_TS1     (GDT_ENTRY_PNPBIOS_BASE + 0)
-#define GDT_ENTRY_PNPBIOS_TS2     (GDT_ENTRY_PNPBIOS_BASE + 0)
+#define GDT_ENTRY_PNPBIOS_CS16    (GDT_ENTRY_PNPBIOS_BASE + 1)
+#define GDT_ENTRY_PNPBIOS_DS      (GDT_ENTRY_PNPBIOS_BASE + 2)
+#define GDT_ENTRY_PNPBIOS_TS1     (GDT_ENTRY_PNPBIOS_BASE + 3)
+#define GDT_ENTRY_PNPBIOS_TS2     (GDT_ENTRY_PNPBIOS_BASE + 4)
+
+#define SEGMENT_RPL_MASK    0x3
+#define SEGMENT_TI_MASK     0x4
+
+#define USER_RPL            0x3
+
+#define SEGMENT_LDT         0x4
+#define SEGMENT_GDT         0x0
 
 #else /* CONFIG_X86_32 */
 

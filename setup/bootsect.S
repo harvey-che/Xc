@@ -65,7 +65,7 @@ _start3:
     
 
 	/* Load the setup code to SEG_SETUP */
-	pushw $20
+	pushw $17
 	pushw $SEG_BOOTSECT2
 	pushw $str_loading_start
 	call print_str
@@ -92,13 +92,13 @@ _start3:
 	cmpw $0, %ax
 	jne 1f
 
-	pushw $15
+	pushw $6
 	pushw $SEG_BOOTSECT2
 	pushw $str_loading_done
 	call print_str
 
     /* Zero the bss, %es was modified by previous int call */
-	movw $SEG_BOOTSECT2, %ax
+    movw $SEG_BOOTSECT2, %ax
 	movw %ax, %es
 	movw $__bss_start, %di
 	movw $_end+3, %cx
@@ -107,9 +107,9 @@ _start3:
 	shrw $2, %cx
 	rep; stosl
     
-	call prepare_for_pm
+    call prepare_for_pm
 1:
-    pushw $22
+    pushw $8
 	pushw $SEG_BOOTSECT2
 	pushw $str_loading_failed
 	call print_str
@@ -244,11 +244,11 @@ print_str:
 /* end print_str */
 
 str_loading_start:
-    .ascii "Loading kernel ...\r\n"  #20
+    .ascii "Loading kernel..."  #17
 str_loading_done:
-    .ascii "Loading done!\r\n"        #15
+    .ascii "Done\r\n"        #6
 str_loading_failed:
-    .ascii "Sad, loading failed.\r\n"   #22
+    .ascii "Failed\r\n"   #8
 sectors_per_track:
     .word 0
 max_cylinders:

@@ -53,7 +53,6 @@ static DEFINE_PER_CPU(struct per_cpu_pageset, boot_pageset);
 static char *const zone_names[MAX_NR_ZONES] = {
     "DMA",
 	"Normal",
-	"HighMem",
 	"Movable",
 };
 
@@ -1767,3 +1766,26 @@ int init_per_zone_wmark_min(void)
 }
 
 */
+
+/* Allocate a large system hash table from bootmem */
+
+void *__init alloc_large_system_hash(const char *tablename, unsigned long bucketsize, 
+		                             unsigned long numentries, int scale, int flags, 
+									 unsigned int *_hash_shift, unsigned int *_hash_mask, 
+									 unsigned long limit)
+{
+    unsigned long long max = limit;
+	unsigned long log2gty, size;
+	void *table = NULL;
+
+    if (flags & HASH_EARLY)
+		table = alloc_bootmem_nopanic(4096 * bucketsize);
+	if (table == NULL)
+		panic("Failed to allocate system hash table\n");
+
+	if (_hash_shift)
+		*_hash_shift = 12;
+	if (_hash_mask)
+		*_hash_mask = (1 << 12) - 1;
+	return table;
+}
