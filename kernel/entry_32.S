@@ -251,3 +251,13 @@ work_notifysig:
 	/* call do_notify_resume */
 	jmp resume_userspace_sig
 END(work_pending)
+
+ENTRY(kernel_thread_helper)
+    pushl $0
+	/* CFI_STARTPROC */
+	movl %edi, %eax
+	call *%esi
+	call do_exit
+	ud2
+	/* CFI_ENDPROC */
+ENDPROC(kernel_thread_helper)

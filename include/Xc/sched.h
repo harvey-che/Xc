@@ -8,6 +8,30 @@
 #include <Xc/cpumask.h>
 #include <Xc/rbtree.h>
 
+#define CSIGNAL     0x000000ff
+#define CLONE_VM    0x00000100
+#define CLONE_FS    0x00000200
+#define CLONE_FILES 0x00000400
+#define CLONE_SIGHAND 0x00000800
+#define CLONE_PTRACE  0x00002000
+#define CLONE_VFOR    0x00004000
+#define CLONE_PARENT  0x00008000
+#define CLONE_THREAD  0x00010000
+#define CLONE_NEWNS   0x00020000
+#define CLONE_SYSVSEM 0x00040000
+#define CLONE_SETTLS  0x00080000
+#define CLONE_PARENT_SETTID  0x00100000
+#define CLONE_CHILD_CLEARTID 0x00200000
+#define CLONE_DETACHED       0x00400000
+#define CLONE_UNTRACED       0x00800000
+#define CLONE_CHILD_SETTID   0x01000000
+
+#define CLONE_NEWUTS         0x04000000
+#define CLONE_NEWIPC         0x08000000
+#define CLONE_NEWUSER        0x10000000
+#define CLONE_NEWPID         0x20000000
+#define CLONE_NEWNET         0x40000000
+#define CLONE_IO             0x80000000
 
 union thread_union {
     struct thread_info thread_info;
@@ -15,12 +39,70 @@ union thread_union {
 };
 
 extern union thread_union init_thread_union;
+extern struct mm_struct init_mm;
 
 #define TASK_RUNNING          0
 #define TASK_INTERRUPTIBLE    1
 #define TASK_UNINTERRUPTIBLE  2
 
 #define TASK_WAKEKILL         128
+
+#define MMF_DUMPABLE 0
+#define MMF_DUMP_SECURELY 1
+
+#define MMF_DUMPABLE_BITS 2
+#define MMF_DUMPABLE_MASK ((1 << MMF_DUMPABLE_BITS) - 1)
+
+#define MMF_DUMP_ANON_PRIVATE 2
+#define MMF_DUMP_ANON_SHARED  3
+#define MMF_DUMP_MAPPED_PRIVATE 4
+#define MMF_DUMP_MAPPED_SHARED  5
+#define MMF_DUMP_ELF_HEADERS    6
+#define MMF_DUMP_HUGETLB_PRIVATE 7
+#define MMF_DUMP_HUGETLB_SHARED  8
+
+#define MMF_DUMP_FILTER_SHIFT    MMF_DUMPABLE_BITS
+#define MMF_DUMP_FILTER_BITS 7
+#define MMF_DUMP_FILTER_MASK \
+	(((1 << MMF_DUMP_FILTER_BITS) - 1) << MMF_DUMP_FILTER_SHIFT)
+#define MMF_DUMP_FILTER_DEFAULT \
+	((1 << MMF_DUMP_ANON_PRIVATE) | (1 << MMF_DUMP_ANON_SHARED) | \
+	 (1 << MMF_DUMP_HUGETLB_PRIVATE) | MMF_DUMP_MASK_DEFAULT_ELF)
+
+#define MMF_DUMP_MASK_DEFAULT_ELF 0
+
+#define MMF_INIT_MASK (MMF_DUMPABLE_MASK | MMF_DUMP_FILTER_MASK)
+
+#define PF_STARTING	0x00000002	/* being created */
+#define PF_EXITING	0x00000004	/* getting shut down */
+#define PF_EXITPIDONE	0x00000008	/* pi exit done on shut down */
+#define PF_VCPU		0x00000010	/* I'm a virtual CPU */
+#define PF_WQ_WORKER	0x00000020	/* I'm a workqueue worker */
+#define PF_FORKNOEXEC	0x00000040	/* forked but didn't exec */
+#define PF_MCE_PROCESS  0x00000080      /* process policy on mce errors */
+#define PF_SUPERPRIV	0x00000100	/* used super-user privileges */
+#define PF_DUMPCORE	0x00000200	/* dumped core */
+#define PF_SIGNALED	0x00000400	/* killed by a signal */
+#define PF_MEMALLOC	0x00000800	/* Allocating memory */
+#define PF_USED_MATH	0x00002000	/* if unset the fpu must be initialized before use */
+#define PF_FREEZING	0x00004000	/* freeze in progress. do not account to load */
+#define PF_NOFREEZE	0x00008000	/* this thread should not be frozen */
+#define PF_FROZEN	0x00010000	/* frozen for system suspend */
+#define PF_FSTRANS	0x00020000	/* inside a filesystem transaction */
+#define PF_KSWAPD	0x00040000	/* I am kswapd */
+#define PF_OOM_ORIGIN	0x00080000	/* Allocating much memory to others */
+#define PF_LESS_THROTTLE 0x00100000	/* Throttle me less: I clean memory */
+#define PF_KTHREAD	0x00200000	/* I am a kernel thread */
+#define PF_RANDOMIZE	0x00400000	/* randomize virtual address space */
+#define PF_SWAPWRITE	0x00800000	/* Allowed to write to swap */
+#define PF_SPREAD_PAGE	0x01000000	/* Spread page cache over cpuset */
+#define PF_SPREAD_SLAB	0x02000000	/* Spread some slab caches over cpuset */
+#define PF_THREAD_BOUND	0x04000000	/* Thread bound to specific cpu */
+#define PF_MCE_EARLY    0x08000000      /* Early kill for mce process policy */
+#define PF_MEMPOLICY	0x10000000	/* Non-default NUMA mempolicy */
+#define PF_MUTEX_TESTER	0x20000000	/* Thread belongs to the rt mutex tester */
+#define PF_FREEZER_SKIP	0x40000000	/* Freezer should not count it as freezable */
+#define PF_FREEZER_NOSIG 0x80000000	/* Freezer won't send signals to it */
 
 struct task_struct;
 
@@ -146,8 +228,8 @@ struct task_struct {
 	/* Revert to default priority/policy when forking */
 	unsigned sched_reset_on_fork:1;
 
-	//pid_t pid;
-	//pid_t tgid;
+	pid_t pid;
+    pid_t tgid;
 
 #ifdef CONFIG_CC_STACKPROTECTOR
 	/* Canary value for the -fstack-protector gcc feature */
@@ -220,7 +302,7 @@ struct task_struct {
 	unsigned long last_switch_count;
 #endif
 /* CPU-specific state of this task */
-	//struct thread_struct thread;
+	struct thread_struct thread;
 /* filesystem information */
 	//struct fs_struct *fs;
 /* open file information */
@@ -407,6 +489,9 @@ struct task_struct {
 #endif
 }; /* struct task_struct */
 
+/* CONFIG_PREEMPT_RCU is not defined */
+static inline void rcu_copy_process(struct task_struct *p) {}
+
 #ifdef CONFIG_SMP
 
 #else
@@ -440,6 +525,11 @@ static inline void setup_thread_stack(struct task_struct *p, struct task_struct 
 {
     *task_thread_info(p) = *task_thread_info(org);
 	task_thread_info(p)->task = p;
+}
+
+static inline unsigned long *end_of_stack(struct task_struct *p)
+{
+    return (unsigned long *)(task_thread_info(p) + 1);
 }
 
 static inline void set_tsk_thread_flag(struct task_struct *tsk, int flag)
@@ -498,6 +588,10 @@ static inline void put_task_struct(struct task_struct *t)
     if (atomic_dec_and_test(&t->usage))
 		__put_task_struct(t);
 }
+
+extern int copy_thread(unsigned long, unsigned long, unsigned long, struct task_struct *, struct pt_regs *);
+
+extern long do_fork(unsigned long, unsigned long, struct pt_regs *, unsigned long, int *, int *);
 
 extern int idle_cpu(int cpu);
 

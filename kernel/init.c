@@ -1,3 +1,4 @@
+#include <Xc/init.h>
 #include <Xc/mm.h>
 #include <asm/e820.h>
 #include <Xc/kernel.h>
@@ -100,6 +101,35 @@ recalibrate:
 
 	return lpj;
 }
+/* kernel/sched_clock.c */
+int sched_clock_running;
+void sched_clock_init(void)
+{
+    sched_clock_running = 1;
+}
+/* end -- kernel/sched_clock.c */
+
+void __init __weak thread_info_cache_init(void)
+{
+}
+
+static void rest_init(void)
+{
+    int pid;
+
+	kernel_thread(kernel_init, NULL, CLONE_FS | CLONE_SIGHAND);
+
+	pid = kernel_thread(kthread, NULL, CLONE_FS | CLONE_FILES);
+
+    /* kthread_task = find_task_by_pid_ns(pid, &init_pid_ns); */
+
+	init_idle_bootup_task(current);
+	preempt_enable_no_resched();
+	schedule();
+
+	preempt_disable();
+	cpu_idle();
+}
 
 void start_kernel()
 {
@@ -171,8 +201,13 @@ void start_kernel()
 	if (late_time_init)
 		late_time_init();
 
-
+	sched_clock_init();
 	calibrate_delay_converge();
+    /* pidmap_init(); */
+
+	thread_info_cache_init();
+	
+	fork_init(totalram_pages);
 	while (1) {
         int debug = 0;
 		debug++;

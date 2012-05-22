@@ -1,4 +1,5 @@
 #include <Xc/sched.h>
+#include <asm/processor.h>
 
 void prepare_to_copy(struct task_struct *tsk)
 {

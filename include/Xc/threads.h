@@ -5,4 +5,8 @@
 
 #define NR_CPUS CONFIG_NR_CPUS
 
+#define PID_MAX_DEFAULT 0x1000
+
+#define PID_MAX_LIMIT (PAGE_SIZE * 8)
+
 #endif

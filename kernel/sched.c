@@ -272,6 +272,12 @@ int idle_cpu(int cpu)
     return cpu_curr(cpu) == cpu_rq(cpu)->idle;
 }
 
+static void resched_task(struct task_struct *p)
+{
+    assert_raw_spin_locked(&task_rq(p)->lock);
+	set_tsk_need_resched(p);
+}
+
 static inline void update_load_add(struct load_weight *lw, unsigned long inc)
 {
 	lw->weight += inc;
@@ -453,6 +459,28 @@ static void deactivate_task(struct rq *rq, struct task_struct *p, int flags)
 		rq->nr_uninterruptible++;
 	dequeue_task(rq, p, flags);
 	dec_nr_running(rq);
+}
+
+static void check_preempt_curr(struct rq *rq, struct task_struct *p, int flags)
+{
+    const struct sched_class *class;
+
+	if (p->sched_class == rq->curr->sched_class) {
+        rq->curr->sched_class->check_preempt_curr(rq, p, flags);
+	} else {
+        for_each_class(class) {
+            if (class == rq->curr->sched_class)
+				break;
+
+			if (class == p->sched_class) {
+                resched_task(rq->ccurr);
+				break;
+			}
+		}
+	}
+
+	if (rq->curr->on_rq && test_tsk_need_resched(rq->curr))
+		rq->skip_clock_update = 1;
 }
 
 void wake_up_new_task(struct task_struct *p)

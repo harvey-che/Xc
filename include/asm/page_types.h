@@ -20,6 +20,7 @@
 
 #define PAGE_OFFSET   ((unsigned long)__PAGE_OFFSET)
 
+
 extern void initmem_init(void);
 extern void free_initmem(void);
 

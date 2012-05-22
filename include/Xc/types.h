@@ -67,6 +67,8 @@ typedef int clockid_t;
 
 typedef unsigned gfp_t;
 
+typedef int pid_t;
+
 #define DECLARE_BITMAP(name, bits)    \
 	unsigned long name[BITS_TO_LONGS(bits)]
 

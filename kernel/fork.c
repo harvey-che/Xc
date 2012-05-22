@@ -1,5 +1,35 @@
+#include <Xc/init.h>
 #include <Xc/sched.h>
 #include <Xc/kthread.h>
+#include <Xc/slab.h>
+#include <asm/processor.h>
+#include <Xc/mm.h>
+#include <Xc/magic.h>
+#include <Xc/errno.h>
+#include <asm/pgalloc.h>
+#include <asm/ptrace.h>
+#include <Xc/pid.h>
+
+int nr_threads;
+int max_threads;
+
+static struct kmem_cache *task_struct_cachep;
+
+struct kmem_cache *mm_cachep;
+
+void __init for_init(unsigned long mempages)
+{
+	/*
+    task_struct_cachep = kmem_cache_create("task_struct", sizeof(struct task_struct), ARCH_MIN_TASKALIGN, SLAB_PANIC | SLAB_NOTRACK, NULL);
+    */
+	/* arch_task_cache_init(); */
+
+	max_threads = mempages / (8 * THREAD_SIZE / PAGE_SIZE);
+
+	if (max_threads < 20)
+		max_threads = 20;
+
+}
 
 
 #define alloc_task_struct_node(node)    \
@@ -9,17 +39,18 @@
 	kmem_cache_free(task_struct_cachep, (tsk))
 
 #define allocate_mm() (kmem_cache_alloc(mm_cachep, GFP_KERNEL))
-#define free_mm() (kmem_cache_free(mm_cachep, (mm)))
+#define free_mm(mm) (kmem_cache_free(mm_cachep, (mm)))
 
 static struct task_struct *dup_task_struct(struct task_struct *orig)
 {
     struct task_struct *tsk;
 	struct thread_info *ti;
 	unsigned long *stackend;
-	int node = tsk_for_get_node(orig);
+	int node = tsk_fork_get_node(orig);
+	int err;
 
 	prepare_to_copy(orig);
-	task = alloc_task_struct_node(node);
+	tsk = alloc_task_struct_node(node);
 	if (!tsk)
 		return NULL;
 
@@ -61,15 +92,30 @@ static inline int mm_alloc_pgd(struct mm_struct *mm)
 	return 0;
 }
 
+static inline void mm_free_pgd(struct mm_struct *mm)
+{
+    pgd_free(mm, mm->pgd);
+}
+
+static int dup_mmap(struct mm_struct *mm, struct mm_struct *oldmm)
+{
+    int retval;
+
+	return retval;
+}
+
+
+static unsigned long default_dump_filter = MMF_DUMP_FILTER_DEFAULT;
+
 static struct mm_struct *mm_init(struct mm_struct *mm, struct task_struct *p)
 {
     atomic_set(&mm->mm_users, 1);
 	atomic_set(&mm->mm_count, 1);
-	init_rwsem(&mm->mmap_sem);
+	//init_rwsem(&mm->mmap_sem);
 	INIT_LIST_HEAD(&mm->mmlist);
 	mm->flags = (current->mm) ? (current->mm->flags & MMF_INIT_MASK) : default_dump_filter;
 
-	mm->core_state = NULL;
+	//mm->core_state = NULL;
 	mm->nr_ptes = 0;
 
 	spin_lock_init(&mm->page_table_lock);
@@ -86,6 +132,11 @@ static struct mm_struct *mm_init(struct mm_struct *mm, struct task_struct *p)
 
 	free_mm(mm);
 	return NULL;
+}
+
+void mmput(struct mm_struct *mm)
+{
+    
 }
 
 struct mm_struct *dup_mm(struct task_struct *tsk)
@@ -109,19 +160,22 @@ struct mm_struct *dup_mm(struct task_struct *tsk)
 	if (!mm_init(mm, tsk))
 		goto fail_nomem;
 
+	/*
 	if (init_new_context(tsk, mm))
 		goto fail_nocontext;
+	*/
 
-	err = dup_mmap(mm, oldmm);
+	/* err = dup_mmap(mm, oldmm);
 	if (err)
 		goto free_pt;
+	*/
 
 	mm->hiwater_vm = mm->total_vm;
 
 	return mm;
 
 free_pt:
-	mm->binfmt = NULL;
+	//mm->binfmt = NULL;
 	mmput(mm);
 
 fail_nomem:
@@ -136,8 +190,9 @@ fail_nocontext:
 static int copy_mm(unsigned long clone_flags, struct task_struct *tsk)
 {
     struct mm_struct *mm, *oldmm;
+	int retval;
 
-	tsk->min_flt = tsk_maj_flt = 0;
+	tsk->min_flt = tsk->maj_flt = 0;
 	tsk->nvcsw = tsk->nivcsw = 0;
 
 	tsk->mm = NULL;
@@ -165,6 +220,20 @@ good_mm:
 	tsk->mm = mm;
 	tsk->active_mm = mm;
 	return 0;
+
+fail_nomem:
+	return retval;
+}
+
+static void copy_flags(unsigned long clone_flags, struct task_struct *p)
+{
+    unsigned long new_flags = p->flags;
+
+	new_flags &= ~(PF_SUPERPRIV | PF_WQ_WORKER);
+	new_flags |= PF_FORKNOEXEC;
+	new_flags |= PF_STARTING;
+	p->flags = new_flags;
+	/* clear_freeze_flag(p); */
 }
 
 static void rt_mutex_init_task(struct task_struct *p)
@@ -178,13 +247,14 @@ static struct task_struct *copy_process(unsigned long clone_flags, unsigned long
 {
     int retval;
 	struct task_struct *p;
+	int cgroup_callbacks_done = 1;
 	
 	retval = -ENOMEM;
 	p = dup_task_struct(current);
 	if (!p)
 		goto fork_out;
 
-	rt_mutext_init_task(p);
+	rt_mutex_init_task(p);
 
 	retval = -EAGAIN;
 
@@ -200,10 +270,11 @@ static struct task_struct *copy_process(unsigned long clone_flags, unsigned long
 	INIT_LIST_HEAD(&p->children);
 	INIT_LIST_HEAD(&p->sibling);
 	rcu_copy_process(p);
-	p->vfork_done = NULL;
+	//p->vfork_done = NULL;
 
 	spin_lock_init(&p->alloc_lock);
 
+	/*
 	p->utime = cputime_zero;
 	p->stime = cputime_zero;
 	p->gtime = cputime_zero;
@@ -214,15 +285,17 @@ static struct task_struct *copy_process(unsigned long clone_flags, unsigned long
 	p->prev_stime = cputime_zero;
 
 	p->default_timer_slack_ns = current->timer_slack_ns;
+    */
+	//do_posix_clock_monotonic_gettime(&p->start_time);
+	//p->real_start_time = p->start_time;
+	//monotonic_to_bootbased(&p->real_start_time);
 
-	do_posix_clock_monotonic_gettime(&p->start_time);
-	p->real_start_time = p->start_time;
-	monotonic_to_bootbased(&p->real_start_time);
+	//p->io_context = NULL;
 
-	p->io_context = NULL;
-
+	/*
 	if (clone_flags & CLONE_THREAD)
 		threadgroup_fork_read_lock(current);
+    */
 
 	sched_fork(p);
 
@@ -271,33 +344,6 @@ fork_out:
 	return ERR_PTR(retval);
 }
 
-static void resched_task(struct task_struct *p)
-{
-    assert_raw_spin_locked(&task_rq(p)->lock);
-	set_tsk_need_resched(p);
-}
-
-static void check_preempt_curr(struct rq *rq, struct task_struct *p, int flags)
-{
-    const struct sched_class *class;
-
-	if (p->sched_class == rq->curr->sched_class) {
-        rq->curr->sched_class->check_preempt_curr(rq, p, flags);
-	} else {
-        for_each_class(class) {
-            if (class == rq->curr->sched_class)
-				break;
-
-			if (class == p->sched_class) {
-                resched_task(rq->ccurr);
-				break;
-			}
-		}
-	}
-
-	if (rq->curr->on_rq && test_tsk_need_resched(rq->curr))
-		rq->skip_clock_update = 1;
-}
 
 
 long do_fork(unsigned long clone_flags, unsigned long stack_start, struct pt_regs *regs, 

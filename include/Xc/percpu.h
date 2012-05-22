@@ -1,6 +1,8 @@
-#ifndef _XC_PERCPU_DEFS_H
-#define _XC_PERCPU_DEFS_H
+#ifndef _XC_PERCPU_H
+#define _XC_PERCPU_H
 
+
+#include <Xc/percpu_defs.h>
 /* 
  * CONFIG_SMP is not defined
  * linux/percpu.h -> asm/percpu.h -> asm-generic/percpu.h -> percpu-def.h
@@ -8,6 +10,7 @@
 
 /* Don't support SMP */
 #define PER_CPU_BASE_SECTION ".data"
+#define PER_CPU_SHARED_ALIGNED_SECTION ""
 
 #ifndef PER_CPU_DEF_ATTRIBUTES
 #define PER_CPU_DEF_ATTRIBUTES
@@ -17,7 +20,7 @@
 #define PER_CPU_ATTRIBUTES
 #endif
 
-
+#if 0
 #define __PCPU_ATTRS(sec)    \
 	__attribute__((section(PER_CPU_BASE_SECTION sec)))   \
     PER_CPU_ATTRIBUTES
@@ -39,6 +42,8 @@
 #define __verify_pcpu_ptr(ptr) do {     \
 	const void *__vpp_verify = (typeof(ptr))NULL;   \
 	(void) __vpp_verify; } while (0)
+
+#endif
 
 #define VERIFY_PERCPU_PTR(__p) ({    \
 		__verify_pcpu_ptr((__p));     \

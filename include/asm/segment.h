@@ -93,5 +93,7 @@
 #define __USER_CS     (GDT_ENTRY_DEFAULT_USER_CS * 8 + 3)
 
 #define IDT_ENTRIES 256
+#define GDT_ENTRY_TLS_ENTRIES 3
+#define TLS_SIZE (GDT_ENTRY_TLS_ENTRIES * 8)
 
 #endif

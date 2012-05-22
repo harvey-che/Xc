@@ -53,6 +53,38 @@
 
 #ifndef __ASSEMBLY__
 
+typedef struct {
+    unsigned long pgd;
+} pgd_t;
+
+typedef struct {
+    unsigned long pud;
+} pud_t;
+
+typedef struct {
+    unsigned long pmd;
+} pmd_t;
+
+typedef struct {
+    unsigned long pte;
+} pte_t;
+
+typedef struct {
+    unsigned long pgprot;
+} pgprot_t;
+
+/* pgtable-nopmd.h */
+struct mm_struct;
+static inline void pmd_free(struct mm_struct *mm, pmd_t *pmd)
+{
+}
+/* end -- pgtable-nopmd.h */
+
+static inline pgd_t native_make_pgd(unsigned long val)
+{
+    return (pgd_t) { val };
+}
+
 /* variables defined in pgtable_32.c  */
 #define __FIXADDR_TOP 0xfffff000
 #define __VMALLOC_RESERVE  (128 << 20)

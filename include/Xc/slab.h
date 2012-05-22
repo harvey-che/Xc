@@ -24,6 +24,8 @@
 
 #define SLAB_RECLAIM_ACCOUNT 0x00020000UL
 
+void kmem_cache_free(struct kmem_cache *, void *);
+
 #define ARCH_SLAB_MINALIGN __alignof__(unsigned long long)
 #define ARCH_KMALLOC_MINALIGN __alignof__(unsigned long long)
 #include <Xc/slub_def.h>

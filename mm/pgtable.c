@@ -1,4 +1,5 @@
 #include <asm/pgtable.h>
+#include <asm/pgalloc.h>
 
 static void free_pmds(pmd_t *pmds[])
 {
@@ -6,6 +7,24 @@ static void free_pmds(pmd_t *pmds[])
 	for (i = 0; i < PREALLOCATED_PMDS; i++)
 		if (pmds[i])
 			free_page((unsigned long)pmds[i]);
+}
+
+static void pgd_mop_up_pmds(struct mm_struct *mm, pgd_t *pgdp)
+{
+    int i;
+
+	for (i = 0; i < PREALLOCATED_PMDS; i++) {
+        pgd_t pgd = pgdp[i];
+		
+		if (pgd_val(pgd) != 0) {
+            pmd_t *pmd = (pmd_t *)pgd_page_vaddr(pgd);
+
+			pgdp[i] = native_make_pgd(0);
+
+			/* paravirt_release_pmd(pgd_val(pgd) >> PAGE_SHIFT); */
+			pmd_free(mm, pmd);
+		}
+	}
 }
 
 static int preallocate_pmds(pmd_t *pmds[])
@@ -57,6 +76,13 @@ out_free_pgd:
 	free_page((unsigned long)pgd);
 out:
 	return NULL;
+}
+
+void pgd_free(struct mm_struct *mm, pgd_t *pgd)
+{
+    pgd_mop_up_pmds(mm, pgd);
+	pgd_dtor(pgd);
+	free_page((unsigned long)pgd);
 }
 
 static void pgd_set_mm(pgd_t *pgd, struct mm_struct *mm)

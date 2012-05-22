@@ -7,26 +7,6 @@
 
 #ifndef __ASSEMBLY__
 
-typedef struct {
-    u32 pgd;
-} pgd_t;
-
-typedef struct {
-    u32 pud;
-} pud_t;
-
-typedef struct {
-    u32 pmd;
-} pmd_t;
-
-typedef struct {
-    u32 pte;
-} pte_t;
-
-typedef struct {
-    u32 pgprot;
-} pgprot_t;
-
 #define __pgprot(x) ((pgprot_t){(x)})
 
 #define __pgd(x) ((pgd_t){(x)})
@@ -75,6 +55,15 @@ static inline void set_pte(pte_t *ptep, pte_t pte)
     *ptep = pte;
 }
 
+static inline unsigned long pgd_val(pgd_t pgd)
+{
+    return pgd.pgd;
+}
+
+static inline unsigned long pgd_page_vaddr(pgd_t pgd)
+{
+    return (unsigned long)__va((unsigned long)pgd_val(pgd) & PTE_PFN_MASK);
+}
 
 static inline pte_t pfn_pte(u32 pfn, u32  pgprot)
 {
